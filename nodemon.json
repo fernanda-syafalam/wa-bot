@@ -1,0 +1,8 @@
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "delay": "1000",
+  "restartable": "rs",
+  "exec": "node ./src/app.js",
+  "legacy-watch": true
+}

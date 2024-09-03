@@ -1,0 +1,55 @@
+[2024-09-03 04:41:32.264] WARN: Invalid signature for API key testing. Expected: testing:9afe2e34923000a36f50128797b751a7309be6d4b2a0dbe862a7fe265e078a64:1725338492, Received: testing:4f8cbb6ee5a68efce6fe5ad03ad8fe6eff305f84a9729ff331e6bced13d9ac55:1725338492
+[2024-09-03 04:41:37.533] WARN: Invalid signature for API key testing. Expected: testing:1006329192cd5107ad8160e3b0150cd1c770d7ccb02b2e3610b7d5d4cd2d4e98:1725338497, Received: testing:3aec203e352d40a524005e867a0fe4633918124d9dd7d3e3dcb030beaa481ce3:1725338497
+[2024-09-03 04:42:49.074] WARN: Invalid signature for API key testing. Expected: testing:df3cd899a9625db7033d0da254b0a0cab0f368580e5d99d0a8416d82d921905b:1725338569, Received: testing:320abcea5cc1b0961eebd9a3cd0f6c84d3d19bd61b6ea3a9b3b9b33813ce483e:1725338569
+[2024-09-03 04:42:56.546] WARN: Invalid signature for API key testing. Expected: testing:233bc3210342c4b8029c5088535c7039e3d54e0887771886a0becbba466b1945:1725338576, Received: testing:01077e65247853ab233ccb2827f4d635577b34aed5daea240101a21fb1549422:1725338576
+[2024-09-03 04:43:05.761] WARN: Invalid signature for API key testing. Expected: testing:b67d6935a44565d272ad87011583e979b800c58601ee2f6feeb0d366f93b7fda:1725338585, Received: testing:4b43a937bc6a5e2023207633397e7821f84007c683317bb92affd3e537837d5d:1725338585
+[2024-09-03 04:43:17.294] INFO: Creating new WaService instance for tiga
+[2024-09-03 04:43:17.295] WARN: Socket not initialized or inactive for tiga, attempting to reconnect...
+[2024-09-03 04:43:17.551] INFO: WhatsApp socket initialized for tiga
+[2024-09-03 04:43:18.238] INFO: connected to WA
+    browser: [
+      "Mac OS",
+      "Chrome",
+      "14.4.1"
+    ]
+    helloMsg: {
+      "clientHello": {
+        "ephemeral": "1N+MQWgVIjtIUwKEkSLZyQ8am2aQsuZTsvt9QeO5FAk="
+      }
+    }
+[2024-09-03 04:43:18.573] INFO: not logged in, attempting registration...
+    node: {
+      "passive": false,
+      "userAgent": {
+        "platform": "WEB",
+        "appVersion": {
+          "primary": 2,
+          "secondary": 3000,
+          "tertiary": 1015901307
+        },
+        "mcc": "000",
+        "mnc": "000",
+        "osVersion": "0.1",
+        "manufacturer": "",
+        "device": "Desktop",
+        "osBuildNumber": "0.1",
+        "releaseChannel": "RELEASE",
+        "localeLanguageIso6391": "en",
+        "localeCountryIso31661Alpha2": "US"
+      },
+      "webInfo": {
+        "webSubPlatform": "WEB_BROWSER"
+      },
+      "connectType": "WIFI_UNKNOWN",
+      "connectReason": "USER_ACTIVATED",
+      "devicePairingData": {
+        "eRegid": "AAAA5A==",
+        "eKeytype": "BQ==",
+        "eIdent": "K5UoK14Qvsv/ad89BL/o1+YVLV/wD41zbLNUgjelkEA=",
+        "eSkeyId": "AAAB",
+        "eSkeyVal": "IYWUyVyDQzl956MWPwX0VRRqwEuqpkdGgaO8oivJ+m8=",
+        "eSkeySig": "LCF3+aNjWWDBTfIle00PvNQy3yXtFxbOhwOV9365/QCPZKM6GaYFT25ZOd0eyuhiZA8cJ5Pp9KqG1J2hV0a2Dw==",
+        "buildHash": "XU5Elvgegz+f9FOU5QBeaw==",
+        "deviceProps": "CgZNYWMgT1MYASAA"
+      }
+    }

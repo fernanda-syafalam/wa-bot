@@ -1,0 +1,38 @@
+[2024-09-02 05:08:03.271] ERROR: Failed to send message from satu to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
+[2024-09-02 05:08:06.790] ERROR: Failed to send message from satu to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
+[2024-09-02 05:08:53.552] ERROR: stream errored out
+    node: {
+      "tag": "stream:error",
+      "attrs": {
+        "code": "515"
+      }
+    }
+[2024-09-02 05:10:36.437] ERROR: stream errored out
+    node: {
+      "tag": "stream:error",
+      "attrs": {
+        "code": "401"
+      },
+      "content": [
+        {
+          "tag": "conflict",
+          "attrs": {
+            "type": "device_removed"
+          }
+        }
+      ]
+    }
+[2024-09-02 05:13:32.565] ERROR: Failed to send message from satu to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
+[2024-09-02 05:14:01.371] ERROR: stream errored out
+    node: {
+      "tag": "stream:error",
+      "attrs": {
+        "code": "515"
+      }
+    }
+[2024-09-02 05:14:34.251] ERROR: Failed to send message from dua to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
+[2024-09-02 05:14:38.488] ERROR: Failed to send message from dua to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
+[2024-09-02 05:18:32.550] ERROR: Failed to send message from dua to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
+[2024-09-02 05:18:55.217] ERROR: Failed to send message from dua to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
+[2024-09-02 05:19:20.841] ERROR: Failed to send message from dua to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
+[2024-09-02 05:19:44.360] ERROR: Failed to send message from dua to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')

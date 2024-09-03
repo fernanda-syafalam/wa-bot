@@ -1,0 +1,6 @@
+[2024-09-02 05:18:31.348] WARN: Socket not initialized or inactive for dua, attempting to reconnect...
+[2024-09-02 05:18:32.550] ERROR: Failed to send message from dua to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
+[2024-09-02 05:18:54.027] WARN: Socket not initialized or inactive for dua, attempting to reconnect...
+[2024-09-02 05:18:55.217] ERROR: Failed to send message from dua to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
+[2024-09-02 05:19:20.841] ERROR: Failed to send message from dua to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
+[2024-09-02 05:19:44.360] ERROR: Failed to send message from dua to 6281574826250@s.whatsapp.net: Cannot read properties of undefined (reading 'id')
