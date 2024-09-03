@@ -10,6 +10,6 @@ app.use(errorHandler);
 app.use(express.json({ limit: '10kb' }));
 app.use('/api/v1', waRoutes);
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on port ${port}`);
 });

@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   app:
     container_name: whatsapp_service
@@ -6,10 +8,20 @@ services:
     ports:
       - '3300:3300'
     environment:
-      - API_KEY=your_global_api_key_here
-      - SET_MESSAGES_AS_SEEN=TRUE
-      - DISABLED_CALLBACKS=message_ack|message_reaction
-      - ENABLE_SWAGGER_ENDPOINT=TRUE |
+      - PORT=${PORT}
+      - NODE_ENV=${NODE_ENV}
+      - STATIC_API_KEY=${STATIC_API_KEY}
+      - SECRET_KEY=${SECRET_KEY}
     volumes:
-      - ./sessions:/usr/src/app/sessions
-      - ./logs:/usr/src/app/logs
+      - session_data:/usr/src/app/sessions
+      - log_data:/usr/src/app/logs
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3300/health || exit 1']
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  session_data:
+  log_data:

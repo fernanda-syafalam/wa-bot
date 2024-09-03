@@ -4,12 +4,12 @@ WORKDIR /usr/src/app
 
 ENV NODE_ENV="production"
 
-COPY package.json ./
+COPY package*.json ./
 
 RUN npm ci --only=production --ignore-scripts
 
 COPY . .
 
-EXPOSE 3000
+EXPOSE 3300
 
-CMD ["npm", "start"]
+CMD ["node", "src/app.js"]

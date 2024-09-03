@@ -3,6 +3,5 @@ sessions
 
 src/logs
 .vscode
-package-*
 
 .env
