@@ -1,15 +1,26 @@
-FROM node:20-alpine
+FROM node:20-alpine AS builder
+
+ENV NODE_ENV=build
+
+RUN apk add --no-cache dumb-init
 
 WORKDIR /usr/src/app
 
-ENV NODE_ENV="production"
+COPY package*.json /usr/src/app
 
-COPY package*.json ./
+RUN npm ci --only=production --ignore-scripts --prefer-offline
 
-RUN npm ci --only=production --ignore-scripts
+# ---
 
-COPY . .
+FROM node:20-alpine
 
-EXPOSE 3300
+ENV NODE_ENV=production
 
-CMD ["node", "src/app.js"]
+USER node
+WORKDIR /usr/src/app
+
+COPY --from=builder /usr/bin/dumb-init /usr/bin/dumb-init
+COPY --from=builder /usr/src/app/node_modules /usr/src/app/node_modules
+COPY --chown=node:node . /usr/src/app
+
+CMD ["dumb-init", "node", "src/app.js"]
