@@ -11,15 +11,11 @@ services:
       - API_KEY=${API_KEY}
       - SECRET_KEY=${SECRET_KEY}
     volumes:
-      - session_data:/usr/src/app/sessions
-      - log_data:/usr/src/app/logs
+      - ./sessions:/usr/src/app/sessions
+      - ./logs:/usr/src/app/logs
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:3300/health || exit 1']
       interval: 1m
       timeout: 10s
       retries: 3
       start_period: 40s
-
-volumes:
-  session_data:
-  log_data:
