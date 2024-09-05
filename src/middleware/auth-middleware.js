@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const staticApiKey = process.env.STATIC_API_KEY;
+const staticApiKey = process.env.API_KEY;
 const logger = require('../config/logger');
 const { STATUS_CODE } = require('../constant/status-code');
 const { generateSignature } = require('../utils/generateSignature');

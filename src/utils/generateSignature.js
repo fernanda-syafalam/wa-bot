@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const crypto = require('crypto');
-const staticApiKey = process.env.STATIC_API_KEY;
+const staticApiKey = process.env.API_KEY;
 const secretKey = process.env.SECRET_KEY;
 
 const generateSignature = (url, timestamp) => {
