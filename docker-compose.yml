@@ -1,6 +1,6 @@
 services:
-  whatsapp_service:
-    container_name: whatsapp_service
+  app:
+    container_name: app
     build: .
     restart: on-failure
     ports:
