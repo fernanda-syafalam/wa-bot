@@ -6,12 +6,12 @@ const waRoutes = Router();
 
 waRoutes.use(limiter);
 waRoutes.use(authMiddleware);
-waRoutes.get('/:phoneNumber/generate-qr', WaController.generateQr);
-waRoutes.post('/:phoneNumber/send-message', WaController.sendMessage);
+waRoutes.get('/:session/generate-qr', WaController.generateQr);
+waRoutes.post('/:session/send-message', WaController.sendMessage);
 waRoutes.get('/devices', WaController.listActiveServices);
-waRoutes.get('/:phoneNumber/status', WaController.getStatus);
-waRoutes.get('/:phoneNumber/terminate', WaController.cleanup);
-waRoutes.get('/:phoneNumber/groups', WaController.getAllGroups);
-waRoutes.get('/:phoneNumber/clean-service', WaController.removeService);
+waRoutes.get('/:session/status', WaController.getStatus);
+waRoutes.get('/:session/terminate', WaController.cleanup);
+waRoutes.get('/:session/groups', WaController.getAllGroups);
+waRoutes.get('/:session/clean-service', WaController.removeService);
 
 module.exports = waRoutes;

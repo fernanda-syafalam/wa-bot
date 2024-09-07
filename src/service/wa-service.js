@@ -28,21 +28,21 @@ const msgRetryCounterCache = new NodeCache();
 const groupsCache = new NodeCache({ stdTTL: 60 * 5 });
 
 class WaService {
-  constructor(token) {
-    this.token = token;
+  constructor(session) {
+    this.session = session;
     this.sock = null;
     this.initialized = false;
     this.connectionStatus = 'close';
     this.qr = undefined;
     this.needToScan = false;
-    this.sessionPath = path.join(__dirname, '../../', 'sessions', this.token);
+    this.sessionPath = path.join(__dirname, '../../', 'sessions', this.session);
   }
 
   async init() {
     if (this.initialized) return;
 
     try {
-      const { state, saveCreds } = await useMultiFileAuthState(path.join(__dirname, '../../', 'sessions', this.token));
+      const { state, saveCreds } = await useMultiFileAuthState(path.join(__dirname, '../../', 'sessions', this.session));
       const { version } = await fetchLatestBaileysVersion();
 
       this.sock = makeWASocket({
@@ -66,9 +66,9 @@ class WaService {
       this.sock.ev.on('creds.update', saveCreds);
 
       this.initialized = true;
-      logger.info(`WhatsApp socket initialized for ${this.token}`);
+      logger.info(`WhatsApp socket initialized for ${this.session}`);
     } catch (error) {
-      logger.error(`Failed to initialize WhatsApp socket for ${this.token}: ${error.message}`);
+      logger.error(`Failed to initialize WhatsApp socket for ${this.session}: ${error.message}`);
       throw new ResponseError(STATUS_CODE.HTTP_PRECONDITION_FAILED, error.message);
     }
   }
@@ -82,14 +82,14 @@ class WaService {
       const sessionPath = this.sessionPath;
       if (fs.existsSync(sessionPath)) {
         fs.rmdirSync(sessionPath, { recursive: true });
-        logger.info(`Session for ${this.token} cleaned up successfully`);
+        logger.info(`Session for ${this.session} cleaned up successfully`);
       } else {
         logger.warn(`Session path ${sessionPath} does not exist, nothing to clean up.`);
       }
 
       this.initialized = false;
     } catch (error) {
-      logger.error(`Error during cleanup for ${this.token}: ${error.message}`);
+      logger.error(`Error during cleanup for ${this.session}: ${error.message}`);
       throw new ResponseError(STATUS_CODE.HTTP_CLEAN_UP_FAILED, 'Cleanup error');
     }
   }
@@ -103,7 +103,7 @@ class WaService {
       if (connection === 'close') {
         this.connectionStatus = 'close';
         const lastDisconnectCode = lastDisconnect?.error?.output?.statusCode;
-        logger.info(`Connection status for ${this.token}: ${connection}, lastDisconnectCode: ${lastDisconnectCode}`);
+        logger.info(`Connection status for ${this.session}: ${connection}, lastDisconnectCode: ${lastDisconnectCode}`);
 
         if (RECONNECT_REASONS.includes(lastDisconnectCode)) {
           logger.info(`Attempting to reconnect for ${this.token}...`);
@@ -221,13 +221,24 @@ class WaService {
   }
 
   async getStatus() {
-    if (!this.initialized) {
-      logger.warn(`Socket not initialized or inactive for ${this.token}, attempting to reconnect...`);
-      await this.init();
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    }
+    try {
+      if (!fs.existsSync(this.sessionPath)) {
+        throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Session not initialized');
+      }
 
-    return this.connectionStatus === 'open';
+      if (!this.initialized) {
+        logger.warn(`Socket not initialized or inactive for ${this.token}, attempting to reconnect...`);
+        await this.init();
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+      const status = this.connectionStatus === 'open';
+      return status;
+    } catch (error) {
+      console.timeEnd('getStatus');
+      logger.error(`Failed to get status for ${this.token}: ${error.message}`);
+      throw new ResponseError(STATUS_CODE.HTTP_SERVICE_UNAVAILABLE, 'Failed to get status');
+    }
   }
 
   async sendMessage(to, message) {

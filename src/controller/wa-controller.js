@@ -5,8 +5,8 @@ const { responseSuccess, responseError } = require('../utils/response');
 class WaController {
   async cleanup(req, res) {
     try {
-      const phoneNumber = req.params.phoneNumber;
-      const data = await waServiceManager[phoneNumber].cleanup();
+      const session = req.params.session;
+      const data = await waServiceManager[session].cleanup();
       responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, data);
     } catch (error) {
       responseError(res, error.message, error.status);
@@ -15,8 +15,8 @@ class WaController {
 
   async generateQr(req, res, next) {
     try {
-      const phoneNumber = req.params.phoneNumber;
-      const result = await waServiceManager[phoneNumber].generateQr();
+      const session = req.params.session;
+      const result = await waServiceManager[session].generateQr();
       if (result.message) {
         responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, result.message);
         return;
@@ -31,8 +31,8 @@ class WaController {
 
   async getStatus(req, res) {
     try {
-      const phoneNumber = req.params.phoneNumber;
-      const status = await waServiceManager[phoneNumber].getStatus();
+      const session = req.params.session;
+      const status = await waServiceManager[session].getStatus();
       if (status) {
         responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, 'Active');
       } else {
@@ -45,8 +45,8 @@ class WaController {
 
   async getAllGroups(req, res) {
     try {
-      const phoneNumber = req.params.phoneNumber;
-      const groups = await waServiceManager[phoneNumber].getAllGroups();
+      const session = req.params.session;
+      const groups = await waServiceManager[session].getAllGroups();
       responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, 'Success', groups);
     } catch (error) {
       responseError(res, error.message, error.status);
@@ -64,9 +64,9 @@ class WaController {
 
   async removeService(req, res) {
     try {
-      const phoneNumber = req.params.phoneNumber;
-      waServiceManager.removeService(phoneNumber);
-      responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, `Service for ${phoneNumber} removed successfully`);
+      const session = req.params.session;
+      waServiceManager.removeService(session);
+      responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, `Service for ${session} removed successfully`);
     } catch (error) {
       responseError(res, error.message, error.status);
     }
@@ -74,9 +74,9 @@ class WaController {
 
   async sendMessage(req, res, next) {
     try {
-      const phoneNumber = req.params.phoneNumber;
+      const session = req.params.session;
       const { to, message } = req.body;
-      const data = await waServiceManager[phoneNumber].sendMessage(to, message);
+      const data = await waServiceManager[session].sendMessage(to, message);
       return responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, data);
     } catch (error) {
       responseError(res, error.message, error.status);
