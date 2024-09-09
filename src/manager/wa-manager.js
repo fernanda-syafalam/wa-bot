@@ -28,7 +28,6 @@ class WaServiceManager {
 
   removeService(token) {
     if (this.services[token]) {
-      logger.info(`Removing WaService instance for ${token}`);
       this.services[token].cleanup();
       delete this.services[token];
     }

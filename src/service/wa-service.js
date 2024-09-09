@@ -81,7 +81,12 @@ class WaService {
 
       const sessionPath = this.sessionPath;
       if (fs.existsSync(sessionPath)) {
-        fs.rmdirSync(sessionPath, { recursive: true });
+        fs.rm(sessionPath, { recursive: true }, err => {
+          if (err) {
+            logger.error(`Error during cleanup for ${this.session}: ${err.message}`);
+          }
+        });
+
         logger.info(`Session for ${this.session} cleaned up successfully`);
       } else {
         logger.warn(`Session path ${sessionPath} does not exist, nothing to clean up.`);
@@ -151,40 +156,28 @@ class WaService {
   }
 
   async getAllGroups() {
-    console.time('getAllGroups'); // Mulai pengukuran waktu
     try {
-      // Cek apakah data grup sudah ada di cache
       const cachedGroups = groupsCache.get(`groups_${this.token}`);
       if (cachedGroups) {
-        console.timeEnd('getAllGroups'); // Selesaikan pengukuran jika ada cache
         return cachedGroups;
       }
 
-      console.time('ensureConnection'); // Mengukur waktu untuk ensureConnection
       await this.ensureConnection();
-      console.timeEnd('ensureConnection'); // Selesai pengukuran waktu ensureConnection
 
       if (!this.sock) {
         throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Connection not open');
       }
 
-      console.time('groupFetchAllParticipating'); // Mengukur waktu untuk fetch groups
       const groups = await this.sock.groupFetchAllParticipating();
-      console.timeEnd('groupFetchAllParticipating'); // Selesai pengukuran fetch groups
 
-      console.time('processGroupsList'); // Mengukur waktu untuk memproses groups list
       const groupsList = Object.entries(groups)
         .slice(0)
         .map(groupEntry => groupEntry[1]);
-      console.timeEnd('processGroupsList'); // Selesai pengukuran waktu proses groups list
 
-      // Simpan hasil ke cache
       groupsCache.set(`groups_${this.token}`, groupsList);
 
-      console.timeEnd('getAllGroups'); // Selesai pengukuran waktu keseluruhan fungsi
       return groupsList;
     } catch (error) {
-      console.timeEnd('getAllGroups'); // Pastikan pengukuran waktu berhenti pada error
       logger.error(`Failed to get all groups for ${this.token}: ${error.message}`);
       throw new ResponseError(STATUS_CODE.HTTP_PRECONDITION_FAILED, 'Failed to get all groups');
     }

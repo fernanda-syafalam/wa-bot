@@ -72,6 +72,15 @@ class WaController {
     }
   }
 
+  async removeInactiveServices(req, res) {
+    try {
+      waServiceManager.cleanupInactiveServices();
+      responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, 'Success');
+    } catch (error) {
+      responseError(res, error.message, error.status);
+    }
+  }
+
   async sendMessage(req, res, next) {
     try {
       const session = req.params.session;

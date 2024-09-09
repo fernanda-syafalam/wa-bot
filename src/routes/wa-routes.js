@@ -12,6 +12,6 @@ waRoutes.get('/devices', WaController.listActiveServices);
 waRoutes.get('/:session/status', WaController.getStatus);
 waRoutes.get('/:session/terminate', WaController.cleanup);
 waRoutes.get('/:session/groups', WaController.getAllGroups);
-waRoutes.get('/:session/clean-service', WaController.removeService);
+waRoutes.get('/:session/cleanup', WaController.removeInactiveServices);
 
 module.exports = waRoutes;
