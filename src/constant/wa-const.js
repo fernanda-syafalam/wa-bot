@@ -12,8 +12,7 @@ const RESTART_SESSION_REASONS = [
   DisconnectReason.badSession,
   DisconnectReason.multideviceMismatch,
   DisconnectReason.forbidden,
-  DisconnectReason.unavailableService,
-  DisconnectReason.loggedOut
+  DisconnectReason.unavailableService
 ];
 
 const CONNECT_TIMEOUT = 15;

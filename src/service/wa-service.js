@@ -53,7 +53,7 @@ class WaService {
         },
         logger,
         printQRInTerminal: false,
-        browser: Browsers.macOS('Chrome', 'Mpedia'),
+        browser: Browsers.macOS('Chrome', 'Safari'),
         connectTimeoutMs: CONNECT_TIMEOUT * SECONDS,
         keepAliveIntervalMs: KEEP_ALIVE_INTERVAL * SECONDS,
         retryRequestDelayMs: RETRY_REQUEST_DELAY * SECONDS,
@@ -76,7 +76,8 @@ class WaService {
   cleanup() {
     try {
       if (this.sock) {
-        this.sock.ws.close();
+        this.sock.logout();
+        this.sock = null;
       }
 
       const sessionPath = this.sessionPath;
@@ -120,7 +121,6 @@ class WaService {
           this.init();
         } else {
           logger.error(`Unhandled disconnect reason: ${lastDisconnectCode} for ${this.token}`);
-          throw new ResponseError(STATUS_CODE.HTTP_PRECONDITION_FAILED, `Unhandled disconnect reason: ${lastDisconnectCode}`);
         }
       } else if (connection === 'open') {
         this.connectionStatus = 'open';
@@ -130,7 +130,6 @@ class WaService {
       }
     } catch (error) {
       logger.error(`Error handling connection update for ${this.token}: ${error.message}`);
-      throw new ResponseError(STATUS_CODE.HTTP_PRECONDITION_FAILED, `Connection update error: ${error.message}`);
     }
   }
 
@@ -213,24 +212,11 @@ class WaService {
   }
 
   async getStatus() {
-    if (!fs.existsSync(this.sessionPath)) {
-      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Session not initialized');
+    if (!fs.existsSync(this.sessionPath) || !this.initialized) {
+      return false;
     }
 
-    if (!this.initialized) {
-      logger.warn(`Socket not initialized or inactive for ${this.token}, attempting to reconnect...`);
-      await this.init();
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    }
-
-    try {
-      const status = this.connectionStatus === 'open';
-      return status;
-    } catch (error) {
-      console.timeEnd('getStatus');
-      logger.error(`Failed to get status for ${this.token}: ${error.message}`);
-      throw new ResponseError(STATUS_CODE.HTTP_SERVICE_UNAVAILABLE, 'Failed to get status');
-    }
+    return this.connectionStatus === 'open';
   }
 
   async sendMessage(to, message) {

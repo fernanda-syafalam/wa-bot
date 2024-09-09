@@ -38,11 +38,15 @@ class WaServiceManager {
   }
 
   cleanupInactiveServices() {
-    Object.entries(this.services).forEach(([token, service]) => {
-      if (service.getStatus()) {
-        this.removeService(token);
-      }
-    });
+    try {
+      Object.entries(this.services).forEach(async ([token, service]) => {
+        const status = await service.getStatus();
+        if (!status) {
+          logger.info(`Removing inactive WaService instance for ${token}`);
+          this.removeService(token);
+        }
+      });
+    } catch (error) {}
   }
 }
 

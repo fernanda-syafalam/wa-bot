@@ -7,6 +7,7 @@ class WaController {
     try {
       const session = req.params.session;
       const data = await waServiceManager[session].cleanup();
+      waServiceManager.cleanupInactiveServices();
       responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, data);
     } catch (error) {
       responseError(res, error.message, error.status);
@@ -72,13 +73,8 @@ class WaController {
     }
   }
 
-  async removeInactiveServices(req, res) {
-    try {
-      waServiceManager.cleanupInactiveServices();
-      responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, 'Success');
-    } catch (error) {
-      responseError(res, error.message, error.status);
-    }
+  removeInactiveServices() {
+    waServiceManager.cleanupInactiveServices();
   }
 
   async sendMessage(req, res, next) {
