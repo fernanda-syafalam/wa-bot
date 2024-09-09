@@ -156,13 +156,12 @@ class WaService {
   }
 
   async getAllGroups() {
+    await this.ensureConnection();
     try {
       const cachedGroups = groupsCache.get(`groups_${this.token}`);
       if (cachedGroups) {
         return cachedGroups;
       }
-
-      await this.ensureConnection();
 
       if (!this.sock) {
         throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Connection not open');
@@ -184,17 +183,17 @@ class WaService {
   }
 
   async generateQr() {
+    if (!this.initialized) {
+      logger.warn(`Socket not initialized or inactive for ${this.token}, attempting to reconnect...`);
+      await this.init();
+      await new Promise(resolve => setTimeout(resolve, TIME_INITIALIZATION * SECONDS));
+    }
+
+    if (!this.sock) {
+      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not initialized');
+    }
+
     try {
-      if (!this.initialized) {
-        logger.warn(`Socket not initialized or inactive for ${this.token}, attempting to reconnect...`);
-        await this.init();
-        await new Promise(resolve => setTimeout(resolve, TIME_INITIALIZATION * SECONDS));
-      }
-
-      if (!this.sock) {
-        throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not initialized');
-      }
-
       while (!this.qr) {
         logger.info(`Waiting to generate QR code for ${this.token}`);
 
@@ -214,17 +213,17 @@ class WaService {
   }
 
   async getStatus() {
+    if (!fs.existsSync(this.sessionPath)) {
+      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Session not initialized');
+    }
+
+    if (!this.initialized) {
+      logger.warn(`Socket not initialized or inactive for ${this.token}, attempting to reconnect...`);
+      await this.init();
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
     try {
-      if (!fs.existsSync(this.sessionPath)) {
-        throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Session not initialized');
-      }
-
-      if (!this.initialized) {
-        logger.warn(`Socket not initialized or inactive for ${this.token}, attempting to reconnect...`);
-        await this.init();
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-
       const status = this.connectionStatus === 'open';
       return status;
     } catch (error) {
@@ -235,12 +234,12 @@ class WaService {
   }
 
   async sendMessage(to, message) {
-    try {
-      await this.ensureConnection();
-      if (!this.sock) {
-        throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Connection not open');
-      }
+    await this.ensureConnection();
+    if (!this.sock) {
+      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Connection not open');
+    }
 
+    try {
       await this.sock.sendMessage(to, {
         text: message
       });
