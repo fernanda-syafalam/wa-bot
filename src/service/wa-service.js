@@ -212,15 +212,44 @@ class WaService {
   }
 
   async getStatus() {
-    if (!fs.existsSync(this.sessionPath) || !this.initialized) {
-      return false;
+    const isInitialized = fs.existsSync(this.sessionPath);
+    const isConnected = this.sock !== null;
+    const isOpen = this.connectionStatus === 'open';
+
+    if (!isInitialized) {
+      return {
+        status: STATUS_CODE.HTTP_NOT_ALLOWED,
+        message: 'Session Not Found',
+        value: false
+      };
     }
 
-    return this.connectionStatus === 'open';
+    if (!isConnected) {
+      return {
+        status: STATUS_CODE.HTTP_NOT_ALLOWED,
+        message: 'Socket not initialized',
+        value: false
+      };
+    }
+
+    if (!isOpen) {
+      return {
+        status: STATUS_CODE.HTTP_PRECONDITION_FAILED,
+        message: 'Connection not open',
+        value: false
+      };
+    }
+
+    return {
+      status: STATUS_CODE.HTTP_SUCCESS,
+      message: 'Active',
+      value: true
+    };
   }
 
   async sendMessage(to, message) {
     await this.ensureConnection();
+
     if (!this.sock) {
       throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Connection not open');
     }

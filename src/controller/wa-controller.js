@@ -33,12 +33,8 @@ class WaController {
   async getStatus(req, res) {
     try {
       const session = req.params.session;
-      const status = await waServiceManager[session].getStatus();
-      if (status) {
-        responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, 'Active');
-      } else {
-        responseSuccess(res, STATUS_CODE.HTTP_PRECONDITION_FAILED, 'Inactive');
-      }
+      const data = await waServiceManager[session].getStatus();
+      responseSuccess(res, data.status, data.message);
     } catch (error) {
       responseError(res, error.message, error.status);
     }

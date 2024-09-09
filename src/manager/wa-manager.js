@@ -41,7 +41,7 @@ class WaServiceManager {
     try {
       Object.entries(this.services).forEach(async ([token, service]) => {
         const status = await service.getStatus();
-        if (!status) {
+        if (!status.value) {
           logger.info(`Removing inactive WaService instance for ${token}`);
           this.removeService(token);
         }
