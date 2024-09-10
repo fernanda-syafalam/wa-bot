@@ -79,7 +79,7 @@ class WaController {
       const { to, type, url, caption, ptt, filename } = req.body;
       const data = await waServiceManager[session].sendMedia(to, caption, type, url, ptt, filename);
 
-      return responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, data);
+      return responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, 'Message sent', data);
     } catch (error) {
       responseError(res, error.message, error.status);
     }
