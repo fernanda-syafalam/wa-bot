@@ -224,10 +224,16 @@ class WaService {
       };
     }
 
+    if (!this.initialized) {
+      logger.warn(`Socket not initialized or inactive for ${this.token}, attempting to reconnect...`);
+      await this.init();
+      await new Promise(resolve => setTimeout(resolve, TIME_INITIALIZATION * SECONDS));
+    }
+
     if (!isConnected) {
       return {
         status: STATUS_CODE.HTTP_NOT_ALLOWED,
-        message: 'Socket not initialized',
+        message: 'Socket not found',
         value: false
       };
     }
