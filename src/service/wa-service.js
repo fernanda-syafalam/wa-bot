@@ -291,7 +291,7 @@ class WaService {
 
       if (type === 'audio') {
         return await this.sock.sendMessage(formattedRecipient, {
-          audio: { url: 'https://samplelib.com/lib/preview/mp3/sample-3s.mp3' },
+          audio: { url: url },
           ptt: true,
           mimetype: 'audio/mpeg'
         });
