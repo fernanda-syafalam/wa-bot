@@ -30,21 +30,21 @@ class WaController {
     }
   }
 
-  async getStatus(req, res) {
-    try {
-      const session = req.params.session;
-      const data = await waServiceManager[session].getStatus();
-      responseSuccess(res, data.status, data.message);
-    } catch (error) {
-      responseError(res, error.message, error.status);
-    }
-  }
-
   async getAllGroups(req, res) {
     try {
       const session = req.params.session;
       const groups = await waServiceManager[session].getAllGroups();
       responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, 'Success', groups);
+    } catch (error) {
+      responseError(res, error.message, error.status);
+    }
+  }
+
+  async getStatus(req, res) {
+    try {
+      const session = req.params.session;
+      const data = await waServiceManager[session].getStatus();
+      responseSuccess(res, data.status, data.message);
     } catch (error) {
       responseError(res, error.message, error.status);
     }
@@ -71,6 +71,18 @@ class WaController {
 
   removeInactiveServices() {
     waServiceManager.cleanupInactiveServices();
+  }
+
+  async sendMedia(req, res, next) {
+    try {
+      const session = req.params.session;
+      const { to, type, url, caption, ptt, filename } = req.body;
+      const data = await waServiceManager[session].sendMedia(to, caption, type, url, ptt, filename);
+
+      return responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, data);
+    } catch (error) {
+      responseError(res, error.message, error.status);
+    }
   }
 
   async sendMessage(req, res, next) {

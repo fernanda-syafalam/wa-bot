@@ -23,6 +23,7 @@ const {
   TIME_TOGENERATE_QR,
   SECONDS
 } = require('../constant/wa-const');
+const { formatReceipt, prepareMediaMessage } = require('../utils/helper');
 
 const msgRetryCounterCache = new NodeCache();
 const groupsCache = new NodeCache({ stdTTL: 60 * 5 });
@@ -261,7 +262,7 @@ class WaService {
     }
 
     try {
-      await this.sock.sendMessage(to, {
+      await this.sock.sendMessage(formatReceipt(to), {
         text: message
       });
 
@@ -274,6 +275,50 @@ class WaService {
       } else {
         throw new ResponseError(STATUS_CODE.HTTP_INTERNAL_SERVER_ERROR, 'Failed to send message');
       }
+    }
+  }
+
+  async sendMedia(to, caption, type, url, ptt, filename) {
+    await this.ensureConnection();
+
+    if (!this.sock) {
+      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Connection not open');
+    }
+
+    try {
+      const formattedRecipient = formatReceipt(to);
+      let userId = this.sock.user.id.replace(/:\d+/, '');
+
+      if (type === 'audio') {
+        return await this.sock.sendMessage(formattedRecipient, {
+          audio: { url: 'https://samplelib.com/lib/preview/mp3/sample-3s.mp3' },
+          ptt: true,
+          mimetype: 'audio/mpeg'
+        });
+      }
+
+      const mediaMessage = await prepareMediaMessage(this.sock, {
+        caption: caption ? caption : '',
+        fileName: filename ? filename : '',
+        media: url,
+        mediatype: type !== 'video' && type !== 'image' ? 'document' : type
+      });
+
+      const forwardMessage = { ...mediaMessage.message };
+
+      const result = await this.sock.sendMessage(formattedRecipient, {
+        forward: {
+          key: {
+            remoteJid: userId,
+            fromMe: true
+          },
+          message: forwardMessage
+        }
+      });
+
+      return result;
+    } catch (error) {
+      throw error;
     }
   }
 }

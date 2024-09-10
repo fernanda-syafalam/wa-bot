@@ -8,6 +8,7 @@ waRoutes.use(limiter);
 waRoutes.use(authMiddleware);
 waRoutes.get('/:session/generate-qr', WaController.generateQr);
 waRoutes.post('/:session/send-message', WaController.sendMessage);
+waRoutes.post('/:session/send-media', WaController.sendMedia);
 waRoutes.get('/devices', WaController.listActiveServices);
 waRoutes.get('/:session/status', WaController.getStatus);
 waRoutes.get('/:session/terminate', WaController.cleanup);
