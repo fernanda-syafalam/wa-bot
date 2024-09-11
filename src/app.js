@@ -8,6 +8,7 @@ const healthController = require('./controller/health-controller');
 
 const port = process.env.PORT || 3300;
 const app = express();
+app.set('trust proxy', 1);
 app.use(errorHandler);
 app.use(express.json({ limit: '10kb' }));
 app.use('/api/v1', waRoutes);

@@ -2,20 +2,20 @@ services:
   app:
     container_name: app
     build: .
-    restart: on-failure
+    restart: always
     ports:
       - '3300:3300'
     environment:
-      - PORT=${PORT}
-      - NODE_ENV=${NODE_ENV}
+      - PORT=3300
+      - NODE_ENV=production
       - API_KEY=${API_KEY}
       - SECRET_KEY=${SECRET_KEY}
     volumes:
       - ./sessions:/usr/src/app/sessions
       - ./src/logs:/usr/src/app/src/logs
     healthcheck:
-      test: ['CMD-SHELL', 'curl -f http://localhost:3300/health || exit 1']
-      interval: 30m
+      test: ['CMD-SHELL', 'curl --silent --fail http://localhost:3300/health || exit 1']
+      interval: 5m
       timeout: 10s
       retries: 3
       start_period: 40s

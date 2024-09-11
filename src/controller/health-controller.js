@@ -1,3 +1,4 @@
+const logger = require('../config/logger');
 const { getHealthCheck } = require('../service/health-service');
 
 class healthController {
@@ -9,7 +10,7 @@ class healthController {
         data: healthData
       });
     } catch (error) {
-      console.error('Health check failed:', error);
+      logger.error('Health check failed:', error);
       res.status(503).json({
         status: 'DOWN',
         message: 'Service Unavailable',

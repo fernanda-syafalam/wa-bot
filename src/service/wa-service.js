@@ -151,7 +151,6 @@ class WaService {
       }
     } catch (error) {
       logger.error(`Error ensuring connection for ${this.token}: ${error.message}`);
-      throw error;
     }
   }
 

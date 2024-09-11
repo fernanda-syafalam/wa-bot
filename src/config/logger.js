@@ -8,77 +8,111 @@ const { multistream } = require('pino-multi-stream');
 class LoggerConfig {
   constructor() {
     this.logLevels = ['info', 'error', 'warn'];
-    this.streams = [];
+    this.streams = {};
+    this.currentHour = this.getCurrentHour(); // Initial hour
+  }
+
+  getCurrentHour() {
+    const date = new Date();
+    return String(date.getHours()).padStart(2, '0');
   }
 
   static getLogFolderPath(level) {
     const logFolderPath = path.join(__dirname, '..', 'logs', level);
-    fs.ensureDirSync(logFolderPath);
+    fs.ensureDirSync(logFolderPath); // Ensure folder exists
     return logFolderPath;
   }
 
-  static getLogFilePath(level) {
+  // Generate log file path with date and hour
+  static getLogFilePath(level, hour) {
     const date = new Date();
     const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    const hourStr = String(date.getHours()).padStart(2, '0');
     const logFolderPath = this.getLogFolderPath(level);
-
-    return path.join(logFolderPath, `${dateStr}_${hourStr}.log`);
+    return path.join(logFolderPath, `${dateStr}_${hour}.log`);
   }
 
+  // Create a new file stream for a specific level and hour
   createLogStream(level) {
-    const filePath = LoggerConfig.getLogFilePath(level);
+    const filePath = LoggerConfig.getLogFilePath(level, this.currentHour);
     const fileStream = fs.createWriteStream(filePath, {
-      flags: 'a', // Append mode
-      highWaterMark: 1024 * 1024 // Buffer sebesar 1MB
+      flags: 'a', // Append to the file
+      highWaterMark: 1024 * 1024 // 1MB buffer size for better performance
     });
 
     const prettyOptions = {
-      colorize: false, // Tidak perlu warna untuk log file
+      colorize: false, // No color for file logs
       translateTime: 'yyyy-mm-dd HH:MM:ss.l',
       ignore: 'hostname,pid',
       destination: fileStream
     };
 
     const prettyStream = pinoPretty(prettyOptions);
-
     return prettyStream;
   }
 
+  // Rotate the log file if the hour has changed
+  rotateLogFilesIfNeeded() {
+    const newHour = this.getCurrentHour();
+    if (newHour !== this.currentHour) {
+      this.currentHour = newHour;
+      this.logLevels.forEach(level => {
+        if (this.streams[level]?.destination) {
+          this.streams[level].destination.end(); // Close the old stream
+        }
+        this.streams[level] = this.createLogStream(level); // Create a new stream for the new hour
+      });
+    }
+  }
+
+  // Add log file streams (lazy initialization)
   addFileStreams() {
     if (process.env.NODE_ENV === 'production') {
       this.logLevels.forEach(level => {
-        this.streams.push({
-          level,
-          stream: this.createLogStream(level)
-        });
+        this.streams[level] = this.createLogStream(level); // Initialize stream lazily
       });
     }
   }
 
+  // Add console stream for non-production environments
   addConsoleStream() {
     if (process.env.NODE_ENV !== 'production') {
-      this.streams.push({
-        level: 'info',
-        stream: pinoPretty({
-          colorize: true,
-          translateTime: 'yyyy-mm-dd HH:MM:ss.l',
-          ignore: 'hostname,pid'
-        })
+      this.streams['info'] = pinoPretty({
+        colorize: true,
+        translateTime: 'yyyy-mm-dd HH:MM:ss.l',
+        ignore: 'hostname,pid'
       });
     }
   }
 
+  // Get logger instance
   getLogger() {
     this.addFileStreams();
     this.addConsoleStream();
 
-    return pino(
+    // Each time we log, we first check if the hour has changed and rotate if necessary
+    const streamList = Object.values(this.streams).map((stream, i) => ({
+      level: this.logLevels[i] || 'info', // Set the log level
+      stream
+    }));
+
+    const logger = pino(
       {
-        level: 'info'
+        level: 'info' // Default logging level
       },
-      multistream(this.streams)
+      multistream(streamList)
     );
+
+    return new Proxy(logger, {
+      get: (target, propKey) => {
+        if (['info', 'error', 'warn'].includes(propKey)) {
+          return (...args) => {
+            this.rotateLogFilesIfNeeded(); // Rotate the files before logging
+            target[propKey](...args); // Log the message
+          };
+        }
+        return target[propKey];
+      }
+    });
   }
 }
 
