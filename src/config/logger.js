@@ -9,24 +9,27 @@ class LoggerConfig {
   constructor() {
     this.logLevels = ['info', 'error', 'warn'];
     this.streams = {};
-    this.currentHour = this.getCurrentHour(); // Initial hour
+    this.currentHour = this.getCurrentHour(); // Initial hour in Jakarta time
   }
 
+  // Get the current hour in Indonesia timezone (Jakarta)
   getCurrentHour() {
     const date = new Date();
-    return String(date.getHours()).padStart(2, '0');
+    const options = { timeZone: 'Asia/Jakarta', hour: '2-digit', hour12: false };
+    return new Intl.DateTimeFormat('en-US', options).format(date);
   }
 
+  // Generate the log folder path
   static getLogFolderPath(level) {
     const logFolderPath = path.join(__dirname, '..', 'logs', level);
     fs.ensureDirSync(logFolderPath); // Ensure folder exists
     return logFolderPath;
   }
 
-  // Generate log file path with date and hour
+  // Generate the log file path with date and hour
   static getLogFilePath(level, hour) {
     const date = new Date();
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const dateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(date);
     const logFolderPath = this.getLogFolderPath(level);
     return path.join(logFolderPath, `${dateStr}_${hour}.log`);
   }
