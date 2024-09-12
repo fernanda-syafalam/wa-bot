@@ -44,7 +44,16 @@ class LoggerConfig {
 
     const prettyOptions = {
       colorize: false, // No color for file logs
-      translateTime: 'yyyy-mm-dd HH:MM:ss.l',
+      translateTime: new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Jakarta',
+        hour12: false,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }).format(new Date()),
       ignore: 'hostname,pid',
       destination: fileStream
     };
