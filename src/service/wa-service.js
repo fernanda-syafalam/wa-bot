@@ -156,14 +156,15 @@ class WaService {
 
   async getAllGroups() {
     await this.ensureConnection();
+
+    if (!this.sock) {
+      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not found');
+    }
+
     try {
       const cachedGroups = groupsCache.get(`groups_${this.token}`);
       if (cachedGroups) {
         return cachedGroups;
-      }
-
-      if (!this.sock) {
-        throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Connection not open');
       }
 
       const groups = await this.sock.groupFetchAllParticipating();
@@ -189,7 +190,7 @@ class WaService {
     }
 
     if (!this.sock) {
-      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not initialized');
+      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not found');
     }
 
     try {
@@ -257,7 +258,7 @@ class WaService {
     await this.ensureConnection();
 
     if (!this.sock) {
-      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Connection not open');
+      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not found');
     }
 
     try {
@@ -281,7 +282,7 @@ class WaService {
     await this.ensureConnection();
 
     if (!this.sock) {
-      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Connection not open');
+      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not found');
     }
 
     try {
