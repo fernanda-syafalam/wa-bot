@@ -198,6 +198,10 @@ class WaService {
         logger.info(`Waiting to generate QR code for ${this.token}`);
 
         if (!this.needToScan) {
+          if (this.connectionStatus === 'close') {
+            this.cleanup();
+            return { message: 'Try again!' };
+          }
           logger.info(`QR code not needed for ${this.token}`);
           return { message: "You're all set!" };
         }

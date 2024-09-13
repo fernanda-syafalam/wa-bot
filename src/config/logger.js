@@ -1,105 +1,74 @@
-require('dotenv').config();
 const pino = require('pino');
-const fs = require('fs-extra');
-const path = require('path');
-const pinoPretty = require('pino-pretty');
+const { multistream } = require('pino-multi-stream');
 const rfs = require('rotating-file-stream');
+const path = require('path');
+const pretty = require('pino-pretty');
 
-class LoggerConfig {
-  constructor() {
-    this.logLevels = ['info', 'error', 'warn'];
-    this.streams = [];
-  }
+// Fungsi untuk membuat stream rotasi file dengan pino-pretty
+const pad = num => (num > 9 ? '' : '0') + num;
+const generator = (time, index) => {
+  if (!time) return 'init.log';
 
-  getLogFolderPath(level) {
-    const logFolderPath = path.join(__dirname, '..', 'logs', level);
-    fs.ensureDirSync(logFolderPath);
-    return logFolderPath;
-  }
+  var month = time.getFullYear() + '-' + pad(time.getMonth() + 1);
+  var day = pad(time.getDate());
+  var hour = pad(time.getHours());
+  var minute = pad(time.getMinutes());
 
-  getCurrentHour() {
-    const date = new Date();
-    const options = { timeZone: 'Asia/Jakarta', hour: '2-digit', hour12: false };
-    return new Intl.DateTimeFormat('en-US', options).format(date);
-  }
-
-  getLogFilePath(hour) {
-    const date = new Date();
-    const dateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(date);
-    return `${dateStr}_${hour}.log`;
-  }
-
-  createLogStream(level) {
-    const destination = rfs.createStream(this.getLogFilePath(this.getCurrentHour()), {
-      interval: '1h',
-      path: this.getLogFolderPath(level),
-      size: '10M',
-      compress: 'gzip',
-      maxFiles: 14
-    });
-
-    const prettyOptions = {
-      colorize: false, // No color for file logs
-      translateTime: new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Jakarta',
-        hour12: false,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      }).format(new Date()),
-      ignore: 'hostname,pid',
-      destination: destination
-    };
-
-    const prettyStream = pinoPretty(prettyOptions);
-    return prettyStream;
-  }
-
-  prettyStream(colorize = true) {
-    return pino.transport({
-      target: 'pino-pretty',
-      options: {
-        colorize: colorize,
-        translateTime: 'yyyy-mm-dd HH:MM:ss.l',
-        ignore: 'hostname,pid'
-      }
-    });
-  }
-
-  addFileStreams() {
-    if (process.env.NODE_ENV === 'production') {
-      this.logLevels.forEach(level => {
-        this.streams.push({
-          level,
-          stream: this.createLogStream(level)
-        });
-      });
-    }
-  }
-
-  addConsoleStream() {
-    if (process.env.NODE_ENV !== 'production') {
-      this.streams.push({
-        level: 'info',
-        stream: this.prettyStream()
-      });
-    }
-  }
-
-  getLogger() {
-    this.addFileStreams();
-    this.addConsoleStream();
-
-    return pino(
-      {
-        level: 'info'
-      },
-      pino.multistream(this.streams)
-    );
-  }
+  return `${month}-${day}_${hour}.log`;
+};
+function createPrettyRotatingStream(level, folder) {
+  return pretty({
+    colorize: false,
+    destination: rfs.createStream(generator, {
+      interval: '1h', // Rotasi setiap menit
+      path: path.join(__dirname, '../logs', folder) // Direktori penyimpanan berdasarkan level
+    }),
+    translateTime: new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jakarta',
+      hour12: false,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }).format(new Date()), // Format timestamp yang lebih rapi
+    ignore: 'pid,hostname' // Abaikan informasi pid dan hostname agar lebih bersih
+  });
 }
 
-module.exports = new LoggerConfig().getLogger();
+// Membuat multi-stream untuk menyimpan log berdasarkan level
+const streams = [
+  { level: 'debug', stream: createPrettyRotatingStream('debug', 'debugs') },
+  { level: 'info', stream: createPrettyRotatingStream('info', 'infos') },
+  { level: 'warn', stream: createPrettyRotatingStream('warn', 'warnings') },
+  { level: 'error', stream: createPrettyRotatingStream('error', 'errors') }
+];
+
+// Jika dalam mode development, tambahkan stream ke console dengan pino-pretty untuk log yang lebih rapi
+if (process.env.NODE_ENV === 'development') {
+  streams.push({
+    level: 'debug',
+    stream: pretty({
+      colorize: true, // Berikan warna pada output di console
+      translateTime: 'yyyy-mm-dd HH:MM:ss', // Format timestamp yang lebih rapi
+      ignore: 'pid,hostname' // Abaikan informasi pid dan hostname agar lebih bersih
+    })
+  });
+}
+
+// Membuat logger menggunakan pino
+const logger = pino(
+  {
+    level: 'debug' // Menangani semua level log dari debug ke atas
+  },
+  multistream(streams)
+);
+
+// Contoh penggunaan log di dalam aplikasi
+logger.error('This is an error message');
+logger.warn('This is a warning message');
+logger.info('This is an info message');
+logger.debug('This is a debug message');
+
+module.exports = logger;
