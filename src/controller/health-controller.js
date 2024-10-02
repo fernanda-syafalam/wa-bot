@@ -14,7 +14,7 @@ class healthController {
       logger.error('Health check failed:', error);
       res.status(503).json({
         code: '50301',
-        message: 'Service Unavailable',
+        message: 'DOWN',
         timestamp: new Date().toISOString()
       });
     }
