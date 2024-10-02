@@ -6,13 +6,14 @@ class healthController {
     try {
       const healthData = getHealthCheck();
       res.status(200).json({
-        status: 'UP',
+        code: '20000',
+        message: 'UP',
         data: healthData
       });
     } catch (error) {
       logger.error('Health check failed:', error);
       res.status(503).json({
-        status: 'DOWN',
+        code: '50301',
         message: 'Service Unavailable',
         timestamp: new Date().toISOString()
       });

@@ -30,7 +30,6 @@ const getLoadAverage = () => {
 
 const getHealthCheck = () => {
   return {
-    status: 'OK',
     uptime: getUptime(),
     timestamp: new Date().toLocaleString('id-ID', {
       timeZone: 'Asia/Jakarta'
