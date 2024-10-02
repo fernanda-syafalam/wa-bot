@@ -1,15 +1,17 @@
-const responseSuccess = (res, status_code = 200, message, data = null) => {
+const { ResponseCodeUtils } = require('../constant/status-code');
+
+const responseSuccess = (res, responseCode = 200, message, data = null) => {
   return res.status(200).json({
-    status_code,
+    code: responseCode,
     message,
     data
   });
 };
 
-const responseError = (res, error, status_code = 500) => {
-  return res.status(200).json({
-    status_code,
-    error
+const responseError = (res, responseCode = '') => {
+  return res.status(ResponseCodeUtils.getStatusCode(responseCode)).json({
+    code: responseCode,
+    message: ResponseCodeUtils.getMessage(responseCode)
   });
 };
 

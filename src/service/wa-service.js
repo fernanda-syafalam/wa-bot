@@ -12,7 +12,7 @@ const NodeCache = require('node-cache');
 const fs = require('fs');
 const path = require('path');
 const ResponseError = require('../error/response-error');
-const { STATUS_CODE } = require('../constant/status-code');
+const { ResponseCode } = require('../constant/status-code');
 const {
   RECONNECT_REASONS,
   RESTART_SESSION_REASONS,
@@ -70,7 +70,7 @@ class WaService {
       logger.info(`WhatsApp socket initialized for ${this.session}`);
     } catch (error) {
       logger.error(`Failed to initialize WhatsApp socket for ${this.session}: ${error.message}`);
-      throw new ResponseError(STATUS_CODE.HTTP_PRECONDITION_FAILED, error.message);
+      // throw new ResponseError(ResponseCode.SocketRejected);
     }
   }
 
@@ -97,7 +97,7 @@ class WaService {
       this.initialized = false;
     } catch (error) {
       logger.error(`Error during cleanup for ${this.session}: ${error.message}`);
-      throw new ResponseError(STATUS_CODE.HTTP_CLEAN_UP_FAILED, 'Cleanup error');
+      throw new ResponseError(ResponseCode.CleanUpFailed, 'Cleanup error');
     }
   }
 
@@ -137,17 +137,20 @@ class WaService {
   async ensureConnection() {
     try {
       if (!fs.existsSync(this.sessionPath)) {
-        throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Session not initialized');
+        console.log(`Session file not found for ${this.token}`);
+        throw new ResponseError(ResponseCode.SessionsNotFound, 'Session not initialized');
       }
 
       if (!this.initialized) {
+        console.log(`Socket not initialized or inactive for ${this.token}`);
         logger.warn(`Socket not initialized or inactive for ${this.token}, attempting to reconnect...`);
         await this.init();
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       if (!this.sock) {
-        throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not initialized');
+        console.log(`Socket not found for ${this.token}`);
+        throw new ResponseError(ResponseCode.SocketNotFound, 'Socket not initialized');
       }
     } catch (error) {
       logger.error(`Error ensuring connection for ${this.token}: ${error.message}`);
@@ -158,7 +161,7 @@ class WaService {
     await this.ensureConnection();
 
     if (!this.sock) {
-      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not found');
+      throw new ResponseError(ResponseCode.SocketNotFound, 'Socket not found');
     }
 
     try {
@@ -178,7 +181,7 @@ class WaService {
       return groupsList;
     } catch (error) {
       logger.error(`Failed to get all groups for ${this.token}: ${error.message}`);
-      throw new ResponseError(STATUS_CODE.HTTP_PRECONDITION_FAILED, 'Failed to get all groups');
+      throw new ResponseError(ResponseCode.SocketRejected);
     }
   }
 
@@ -190,43 +193,32 @@ class WaService {
     }
 
     if (!this.sock) {
-      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not found');
+      throw new ResponseError(ResponseCode.SocketNotFound);
     }
 
-    try {
-      while (!this.qr) {
-        logger.info(`Waiting to generate QR code for ${this.token}`);
+    while (!this.qr) {
+      logger.info(`Waiting to generate QR code for ${this.token}`);
 
-        if (!this.needToScan) {
-          if (this.connectionStatus === 'close') {
-            this.cleanup();
-            return { message: 'Try again!' };
-          }
-          logger.info(`QR code not needed for ${this.token}`);
-          return { message: "You're all set!" };
+      if (!this.needToScan) {
+        if (this.connectionStatus === 'close') {
+          this.cleanup();
+          return { message: 'Try again!' };
         }
-
-        await new Promise(resolve => setTimeout(resolve, TIME_TOGENERATE_QR * SECONDS));
+        logger.info(`QR code not needed for ${this.token}`);
+        throw new ResponseError(ResponseCode.ConflictQR);
       }
 
-      return QRCode.toBuffer(this.qr);
-    } catch (error) {
-      logger.error(`Failed to generate QR code for ${this.token}: ${error.message}`);
-      throw new ResponseError(STATUS_CODE.HTTP_SERVICE_UNAVAILABLE, 'Failed to generate QR code');
+      await new Promise(resolve => setTimeout(resolve, TIME_TOGENERATE_QR * SECONDS));
     }
+
+    return QRCode.toBuffer(this.qr);
   }
 
   async getStatus() {
-    const isInitialized = fs.existsSync(this.sessionPath);
-    const isConnected = this.sock !== null;
     const isOpen = this.connectionStatus === 'open';
 
-    if (!isInitialized) {
-      return {
-        status: STATUS_CODE.HTTP_NOT_ALLOWED,
-        message: 'Session Not Found',
-        value: false
-      };
+    if (!fs.existsSync(this.sessionPath)) {
+      throw new ResponseError(ResponseCode.SessionsNotFound);
     }
 
     if (!this.initialized) {
@@ -235,24 +227,16 @@ class WaService {
       await new Promise(resolve => setTimeout(resolve, TIME_INITIALIZATION * SECONDS));
     }
 
-    if (!isConnected) {
-      return {
-        status: STATUS_CODE.HTTP_NOT_ALLOWED,
-        message: 'Socket not found',
-        value: false
-      };
+    if (!this.sock !== null) {
+      throw new ResponseError(ResponseCode.SocketNotFound);
     }
 
     if (!isOpen) {
-      return {
-        status: STATUS_CODE.HTTP_PRECONDITION_FAILED,
-        message: 'Connection not open',
-        value: false
-      };
+      throw new ResponseError(ResponseCode.SocketRejected);
     }
 
     return {
-      status: STATUS_CODE.HTTP_SUCCESS,
+      status: ResponseCode.Ok,
       message: 'Active',
       value: true
     };
@@ -262,7 +246,7 @@ class WaService {
     await this.ensureConnection();
 
     if (!this.sock) {
-      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not found');
+      throw new ResponseError(ResponseCode.SocketNotFound);
     }
 
     try {
@@ -273,12 +257,10 @@ class WaService {
       return 'Message sent successfully';
     } catch (error) {
       logger.error(`Failed to send message from ${this.token} to ${to}: ${error.message}`);
-
-      if (this.connectionStatus !== 'open') {
-        throw new ResponseError(STATUS_CODE.HTTP_PRECONDITION_FAILED, 'Connection not open');
-      } else {
-        throw new ResponseError(STATUS_CODE.HTTP_INTERNAL_SERVER_ERROR, 'Failed to send message');
-      }
+      // if (this.connectionStatus !== 'open') {
+      //   throw new ResponseError(ResponseCode.SocketRejected);
+      // }
+      // throw new ResponseError(ResponseCode.InternalServerError);
     }
   }
 
@@ -286,7 +268,7 @@ class WaService {
     await this.ensureConnection();
 
     if (!this.sock) {
-      throw new ResponseError(STATUS_CODE.HTTP_NOT_ALLOWED, 'Socket not found');
+      throw new ResponseError(ResponseCode.SocketNotFound);
     }
 
     try {

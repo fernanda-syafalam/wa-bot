@@ -1,4 +1,4 @@
-const { STATUS_CODE } = require('../constant/status-code');
+const { ResponseCode } = require('../constant/status-code');
 const waServiceManager = require('../manager/wa-manager');
 const { responseSuccess, responseError } = require('../utils/response');
 
@@ -8,9 +8,9 @@ class WaController {
       const session = req.params.session;
       const data = await waServiceManager[session].cleanup();
       waServiceManager.cleanupInactiveServices();
-      responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, data);
+      responseSuccess(res, ResponseCode.Ok, data);
     } catch (error) {
-      responseError(res, error.message, error.status);
+      responseError(res, error.status);
     }
   }
 
@@ -19,14 +19,14 @@ class WaController {
       const session = req.params.session;
       const result = await waServiceManager[session].generateQr();
       if (result.message) {
-        responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, result.message);
+        responseSuccess(res, ResponseCode.Ok, result.message);
         return;
       }
 
       res.setHeader('Content-Type', 'image/png');
       res.send(result);
     } catch (error) {
-      responseError(res, error.message, error.status);
+      responseError(res, error.status);
     }
   }
 
@@ -34,9 +34,9 @@ class WaController {
     try {
       const session = req.params.session;
       const groups = await waServiceManager[session].getAllGroups();
-      responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, 'Success', groups);
+      responseSuccess(res, ResponseCode.Ok, 'Success', groups);
     } catch (error) {
-      responseError(res, error.message, error.status);
+      responseError(res, error.status);
     }
   }
 
@@ -46,16 +46,16 @@ class WaController {
       const data = await waServiceManager[session].getStatus();
       responseSuccess(res, data.status, data.message);
     } catch (error) {
-      responseError(res, error.message, error.status);
+      responseError(res, error.status);
     }
   }
 
   async listActiveServices(req, res) {
     try {
       const activeServices = waServiceManager.getActiveServices();
-      responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, 'Success', activeServices);
+      responseSuccess(res, ResponseCode.Ok, 'Success', activeServices);
     } catch (error) {
-      responseError(res, error.message, error.status);
+      responseError(res, error.status);
     }
   }
 
@@ -63,9 +63,9 @@ class WaController {
     try {
       const session = req.params.session;
       waServiceManager.removeService(session);
-      responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, `Service for ${session} removed successfully`);
+      responseSuccess(res, ResponseCode.Ok, `Service for ${session} removed successfully`);
     } catch (error) {
-      responseError(res, error.message, error.status);
+      responseError(res, error.status);
     }
   }
 
@@ -79,9 +79,9 @@ class WaController {
       const { to, type, url, caption, ptt, filename } = req.body;
       const data = await waServiceManager[session].sendMedia(to, caption, type, url, ptt, filename);
 
-      return responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, 'Message sent', data);
+      return responseSuccess(res, ResponseCode.Ok, 'Message sent', data);
     } catch (error) {
-      responseError(res, error.message, error.status);
+      responseError(res, error.status);
     }
   }
 
@@ -90,9 +90,9 @@ class WaController {
       const session = req.params.session;
       const { to, message } = req.body;
       const data = await waServiceManager[session].sendMessage(to, message);
-      return responseSuccess(res, STATUS_CODE.HTTP_SUCCESS, data);
+      return responseSuccess(res, ResponseCode.Ok, data);
     } catch (error) {
-      responseError(res, error.message, error.status);
+      responseError(res, error.status);
     }
   }
 }
