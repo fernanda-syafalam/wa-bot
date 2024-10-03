@@ -40,7 +40,7 @@ const authMiddleware = (req, res, next) => {
   }
 
   if (req.method === 'POST' || req.method === 'PUT') {
-    body = JSON.stringify(req.body);
+    body = JSON.stringify(JSON.parse(req.body));
   }
 
   try {
