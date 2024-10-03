@@ -8,9 +8,9 @@ const { ResponseCode } = require('../constant/status-code');
 const crypto = require('crypto');
 
 const validateHeaders = req => {
-  const apiKey = req.headers['X-API-KEY']?.trim().replace(/,$/, '');
-  const timestamp = req.headers['X-TIMESTAMP'];
-  const signature = req.headers['X-SIGNATURE'];
+  const apiKey = req.headers['x-api-key']?.trim().replace(/,$/, '');
+  const timestamp = req.headers['x-timestamp'];
+  const signature = req.headers['x-signature'];
   return { apiKey, timestamp, signature };
 };
 
