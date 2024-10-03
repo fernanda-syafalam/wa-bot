@@ -4,11 +4,12 @@ const crypto = require('crypto');
 const staticApiKey = process.env.API_KEY;
 const secretKey = process.env.SECRET_KEY;
 
-const generateSignature = (url, timestamp) => {
-  const data = `${staticApiKey}${url}${timestamp}`;
-  const signature = crypto.createHmac('sha256', secretKey).update(data).digest('hex');
+const generateSignature = (method, url, timestamp, body) => {
+  const hashBody = crypto.createHash('sha256').update(body).digest('hex');
+  const data = `${method}:${url}:${hashBody}:${timestamp}`;
+  const signature = btoa(crypto.createHmac('sha512', secretKey).update(data).digest('binary'));
 
-  return `${staticApiKey}:${signature}:${timestamp}`;
+  return signature;
 };
 
 module.exports = { generateSignature };
