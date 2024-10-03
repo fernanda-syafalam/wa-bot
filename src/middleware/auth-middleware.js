@@ -54,7 +54,7 @@ const authMiddleware = (req, res, next) => {
   }
 
   const generatedSignature = generateSignature(req.method, url, timestamp, body);
-  logger.error('🚀 ~ authMiddleware ~ req.method, url, timestamp, body:', req.method, url, timestamp, body);
+  logger.error(`🚀 ~ authMiddleware ~ req.method: ${req.method}, url: ${url}, timestamp: ${timestamp}, body: ${body}`);
 
   if (signature !== generatedSignature) {
     logger.warn(`Invalid signature for API key ${apiKey}. Expected: ${generatedSignature}, Received: ${signature}`);
