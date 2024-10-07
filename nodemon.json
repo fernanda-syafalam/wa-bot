@@ -1,5 +1,5 @@
 {
-  "watch": ["src"],
+  "watch": ["src", "doc"],
   "ext": "js,json",
   "delay": "1000",
   "restartable": "rs",

@@ -1,0 +1,508 @@
+openapi: 3.0.0
+
+info:
+  title: Whatsapp Restful API
+  description: Whatsapp API using NodeJS && Baileys
+  version: '1.0.0'
+  contact:
+    name: Fernanda Iqshal Syafalam
+    email: fernanda.iqshalsyafalam@gmail.com
+    url: https://github.com/fernanda-one
+
+  license:
+    name: Baileys
+    url: https://baileys.whiskeysockets.io/
+
+servers:
+  # - url: "https://{environment}.whatsapp.com/api/v1"
+  - url: 'https://wa.asastapayment.com/api/v1'
+    description: Whatsapp API Prefix
+    # variables:
+    #   environment:
+    #     default: development
+    #     enum:
+    #       - development
+    #       - staging
+    #       - production
+
+components:
+  schemas:
+    InvalidApiKeyResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+    SignatureMismatchResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+    TimestampExpiredResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+    SessionNotFoundResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    SocketNotFoundResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    SocketRejectedResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+    signatureAuth:
+      type: apiKey
+      in: header
+      name: x-signature
+    timestampAuth:
+      type: apiKey
+      in: header
+      name: x-timestamp
+  responses:
+    UnauthorizedError:
+      description: Unauthorized - The request is unauthorized due to various reasons.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/InvalidApiKeyResponse'
+              - $ref: '#/components/schemas/SignatureMismatchResponse'
+              - $ref: '#/components/schemas/TimestampExpiredResponse'
+
+          examples:
+            invalidSignature:
+              summary: Invalid Signature
+              value:
+                code: '40300'
+                message: 'Signature mismatch'
+
+            invalidApiKey:
+              summary: Invalid API Key
+              value:
+                code: '40300'
+                message: 'Invalid API key'
+
+            invalidTimestamp:
+              summary: Invalid Timestamp
+              value:
+                code: '40300'
+                message: 'Timestamp expired'
+
+    BadRequestError:
+      description: Bad Request - The request is invalid.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/SessionNotFoundResponse'
+              - $ref: '#/components/schemas/SocketNotFoundResponse'
+              - $ref: '#/components/schemas/SocketRejectedResponse'
+
+          examples:
+            sessionNotFound:
+              summary: Session Not Found
+              value:
+                code: '40401'
+                message: 'Session not found'
+
+            socketNotFound:
+              summary: Socket Not Found
+              value:
+                code: '40402'
+                message: 'Socket not found'
+
+            socketRejected:
+              summary: Socket Rejected
+              value:
+                code: '40001'
+                message: 'Socket rejected'
+
+paths:
+  /devices:
+    get:
+      security:
+        - apiKey: []
+        - signature: []
+        - timestamp: []
+      tags: ['Whatsapp']
+      summary: List Active Services
+      description: List Active Services
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: response code
+                  message:
+                    type: string
+                    description: response message
+                  data:
+                    type: array
+                    description: response data
+                example:
+                  code: '20000'
+                  message: 'Success'
+                  data: ['WA-01']
+        403:
+          $ref: '#/components/responses/UnauthorizedError'
+        400:
+          $ref: '#/components/responses/BadRequestError'
+
+  /{sessions}/groups:
+    get:
+      security:
+        - apiKey: []
+        - signature: []
+        - timestamp: []
+      tags: ['Whatsapp']
+      summary: List Groups
+      description: List Groups
+      parameters:
+        - name: sessions
+          in: path
+          description: Your session
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: response code
+                  message:
+                    type: string
+                    description: response message
+                  data:
+                    type: array
+                    description: response data
+                example:
+                  code: '20000'
+                  message: 'Success'
+                  data:
+                    - id: 120363309955788027@g.us
+                      subject: Bot p
+                      subjectOwner: 6281574826250@s.whatsapp.net
+                      subjectTime: 1724654737
+                      size: 3
+                      creation: 1724654737
+                      owner: 6281574826250@s.whatsapp.net
+                      restrict: false
+                      announce: false
+                      isCommunity: false
+                      isCommunityAnnounce: false
+                      joinApprovalMode: false
+                      memberAddMode: true
+                      participants:
+                        - id: 6281574826250@s.whatsapp.net
+                          admin: superadmin
+                        - id: 6282241638306@s.whatsapp.net
+                          admin: null
+                        - id: 6287778344925@s.whatsapp.net
+                          admin: null
+        403:
+          $ref: '#/components/responses/UnauthorizedError'
+        400:
+          $ref: '#/components/responses/BadRequestError'
+  /{sessions}/generate-qr:
+    get:
+      security:
+        - apiKey: []
+        - signature: []
+        - timestamp: []
+      tags: ['Whatsapp']
+      summary: Generate QR
+      description: Generate QR
+
+      parameters:
+        - name: sessions
+          in: path
+          description: Your session
+          required: true
+          schema:
+            type: string
+
+      responses:
+        200:
+          description: Success generate QR code
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+                example: >
+                  iVBORw0KGgoAAAANSUhEUgAAAoAAAAHgCAYAAADl8U16AAAABmJLR0QA/wD/AP+gvaeTAAAgAElEQVR4Xuy9
+                  eXxUddX/3XPXntndTXe3Wbd9mllAoTEJWJQqEIUyUxQRBRBAUIBBKAKUUSVpByIYgIIYlDClBJINRKwAIBSS
+                  ...
+        403:
+          $ref: '#/components/responses/UnauthorizedError'
+        400:
+          $ref: '#/components/responses/BadRequestError'
+        409:
+          description: Sessions already setup
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: error code
+                  message:
+                    type: string
+                    description: error message
+                example:
+                  code: '40901'
+                  message: 'QR already setup'
+
+  /{sessions}/status:
+    get:
+      security:
+        - apiKey: []
+        - signature: []
+        - timestamp: []
+      tags: ['Whatsapp']
+      summary: Status
+      description: Status
+
+      parameters:
+        - name: sessions
+          in: path
+          description: Your session
+          required: true
+          schema:
+            type: string
+
+      responses:
+        200:
+          description: Success get status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: Response code
+                  message:
+                    type: string
+                    description: Response message
+                  data:
+                    type: object
+                example:
+                  code: '20000'
+                  message: 'Active'
+                  data: null
+        403:
+          $ref: '#/components/responses/UnauthorizedError'
+        400:
+          $ref: '#/components/responses/BadRequestError'
+  /{sessions}/terminate:
+    get:
+      security:
+        - apiKey: []
+        - signature: []
+        - timestamp: []
+      tags: ['Whatsapp']
+      summary: Terminate
+      description: Terminate
+
+      parameters:
+        - name: sessions
+          in: path
+          description: Your session
+          required: true
+          schema:
+            type: string
+
+      responses:
+        200:
+          description: Success terminate
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: Response code
+                  message:
+                    type: string
+                    description: Response message
+                  data:
+                    type: object
+                example:
+                  code: '20000'
+                  message: 'Success'
+                  data: null
+        403:
+          $ref: '#/components/responses/UnauthorizedError'
+        400:
+          $ref: '#/components/responses/BadRequestError'
+
+  /{sessions}/send-message:
+    post:
+      security:
+        - apiKey: []
+        - signature: []
+        - timestamp: []
+      tags: ['Whatsapp']
+      summary: Send Message
+      description: Send Message
+
+      parameters:
+        - name: sessions
+          in: path
+          description: Your session
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        description: Your message
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                to:
+                  type: string
+                  description: number to send
+                message:
+                  type: string
+                  description: Your message
+              example:
+                to: '089198177128@c.us'
+                message: 'Hello World'
+
+      responses:
+        200:
+          description: Success send message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Your message id
+                example:
+                  code: '20000'
+                  message: 'Message sent successfully'
+                  data: null
+        403:
+          $ref: '#/components/responses/UnauthorizedError'
+        400:
+          $ref: '#/components/responses/BadRequestError'
+
+  /{sessions}/send-media:
+    post:
+      security:
+        - apiKey: []
+        - signature: []
+        - timestamp: []
+      tags: ['Whatsapp']
+      summary: Send Media
+      description: Send Media
+
+      parameters:
+        - name: sessions
+          in: path
+          description: Your session
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        description: Your message
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                to:
+                  type: string
+                  description: number to send
+                caption:
+                  type: string
+                  description: message
+                filename:
+                  type: string
+                  format: binary
+                  description: file name
+                type:
+                  type: string
+                  description: file type
+                url:
+                  type: string
+                  description: file url
+                ppt:
+                  type: string
+                  description: ptt
+              example:
+                to: '089198177128@c.us'
+                caption: 'Hello World'
+                filename: 'image.png'
+                type: 'image'
+                url: 'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg'
+                ppt: 'true'
+
+      responses:
+        200:
+          description: Success send media
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Your message id
+                example:
+                  code: '20000'
+                  message: 'Media sent successfully'
+                  data: null
+        403:
+          $ref: '#/components/responses/UnauthorizedError'
+        400:
+          $ref: '#/components/responses/BadRequestError'

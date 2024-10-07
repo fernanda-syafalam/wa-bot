@@ -211,6 +211,7 @@ class WaService {
       await new Promise(resolve => setTimeout(resolve, TIME_TOGENERATE_QR * SECONDS));
     }
 
+    console.log('🚀 ~ WaService ~ generateQr ~ this.qr:', await QRCode.toBuffer(this.qr));
     return QRCode.toBuffer(this.qr);
   }
 
@@ -227,7 +228,7 @@ class WaService {
       await new Promise(resolve => setTimeout(resolve, TIME_INITIALIZATION * SECONDS));
     }
 
-    if (!this.sock !== null) {
+    if (!this.sock) {
       throw new ResponseError(ResponseCode.SocketNotFound);
     }
 
@@ -257,10 +258,10 @@ class WaService {
       return 'Message sent successfully';
     } catch (error) {
       logger.error(`Failed to send message from ${this.token} to ${to}: ${error.message}`);
-      // if (this.connectionStatus !== 'open') {
-      //   throw new ResponseError(ResponseCode.SocketRejected);
-      // }
-      // throw new ResponseError(ResponseCode.InternalServerError);
+      if (this.connectionStatus !== 'open') {
+        throw new ResponseError(ResponseCode.SocketRejected);
+      }
+      throw new ResponseError(ResponseCode.InternalServerError);
     }
   }
 
