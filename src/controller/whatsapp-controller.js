@@ -1,13 +1,13 @@
 const { ResponseCode } = require('../constant/status-code');
-const waServiceManager = require('../manager/wa-manager');
+const WhatsAppManager = require('../manager/whatsapp-manager');
 const { responseSuccess, responseError } = require('../utils/response');
 
-class WaController {
+class WhatsAppController {
   async cleanup(req, res) {
     try {
       const session = req.params.session;
-      const data = await waServiceManager[session].cleanup();
-      waServiceManager.cleanupInactiveServices();
+      const data = await WhatsAppManager.getService(session).cleanup();
+      WhatsAppManager.cleanupInactiveServices();
       responseSuccess(res, ResponseCode.Ok, data);
     } catch (error) {
       responseError(res, error.status);
@@ -17,12 +17,7 @@ class WaController {
   async generateQr(req, res, next) {
     try {
       const session = req.params.session;
-      const result = await waServiceManager[session].generateQr();
-      if (result.message) {
-        responseSuccess(res, ResponseCode.Ok, result.message);
-        return;
-      }
-
+      const result = await WhatsAppManager.getService(session).generateQr();
       res.setHeader('Content-Type', 'image/png');
       res.send(result);
     } catch (error) {
@@ -33,7 +28,7 @@ class WaController {
   async getAllGroups(req, res) {
     try {
       const session = req.params.session;
-      const groups = await waServiceManager[session].getAllGroups();
+      const groups = await WhatsAppManager.getService(session).getAllGroups();
       responseSuccess(res, ResponseCode.Ok, 'Success', groups);
     } catch (error) {
       responseError(res, error.status);
@@ -43,7 +38,7 @@ class WaController {
   async getStatus(req, res) {
     try {
       const session = req.params.session;
-      const data = await waServiceManager[session].getStatus();
+      const data = await WhatsAppManager.getService(session).getStatus();
       responseSuccess(res, data.status, data.message);
     } catch (error) {
       responseError(res, error.status);
@@ -52,7 +47,7 @@ class WaController {
 
   async listActiveServices(req, res) {
     try {
-      const activeServices = waServiceManager.getActiveServices();
+      const activeServices = WhatsAppManager.getActiveServices();
       responseSuccess(res, ResponseCode.Ok, 'Success', activeServices);
     } catch (error) {
       responseError(res, error.status);
@@ -62,7 +57,7 @@ class WaController {
   async removeService(req, res) {
     try {
       const session = req.params.session;
-      waServiceManager.removeService(session);
+      WhatsAppManager.removeService(session);
       responseSuccess(res, ResponseCode.Ok, `Service for ${session} removed successfully`);
     } catch (error) {
       responseError(res, error.status);
@@ -70,14 +65,14 @@ class WaController {
   }
 
   removeInactiveServices() {
-    waServiceManager.cleanupInactiveServices();
+    WhatsAppManager.cleanupInactiveServices();
   }
 
   async sendMedia(req, res, next) {
     try {
       const session = req.params.session;
       const { to, type, url, caption, ptt, filename } = req.body;
-      const data = await waServiceManager[session].sendMedia(to, caption, type, url, ptt, filename);
+      const data = await WhatsAppManager.getService(session).sendMedia(to, caption, type, url, ptt, filename);
 
       return responseSuccess(res, ResponseCode.Ok, 'Message sent', data);
     } catch (error) {
@@ -89,7 +84,7 @@ class WaController {
     try {
       const session = req.params.session;
       const { to, message } = req.body;
-      const data = await waServiceManager[session].sendMessage(to, message);
+      const data = await WhatsAppManager.getService(session).sendMessage(to, message);
       return responseSuccess(res, ResponseCode.Ok, data);
     } catch (error) {
       responseError(res, error.status);
@@ -97,4 +92,4 @@ class WaController {
   }
 }
 
-module.exports = new WaController();
+module.exports = new WhatsAppController();

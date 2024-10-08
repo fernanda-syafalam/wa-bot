@@ -1,4 +1,4 @@
-const { getStatus } = require('../controller/wa-controller');
+const { getStatus } = require('../controller/whatsapp-controller');
 
 const ResponseCode = {
   Ok: '20000',
