@@ -3,10 +3,10 @@ const os = require('os');
 
 const YAML = require('yamljs');
 const express = require('express');
-const waRoutes = require('./routes/wa-routes');
 const errorHandler = require('./middleware/error-handler');
 const healthController = require('./controller/health-controller');
 const swaggerUi = require('swagger-ui-express');
+const WhatsAppRoutes = require('./routes/whatsapp-routes');
 
 const swaggerDocument = YAML.load('./doc/swagger.yaml');
 
@@ -15,7 +15,7 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(errorHandler);
 app.use(express.json({ limit: '10kb' }));
-app.use('/api/v1', waRoutes);
+app.use('/api/v1/sessions', WhatsAppRoutes);
 app.get('/health', healthController.healthCheck);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 

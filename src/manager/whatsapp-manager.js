@@ -19,7 +19,7 @@ class WhatsAppManager {
 
   removeService(session) {
     if (session in this.services) {
-      this.services[session].cleanup();
+      this.services[session].cleanUpSession();
       delete this.services[session];
     }
   }
@@ -31,9 +31,10 @@ class WhatsAppManager {
   cleanupInactiveServices() {
     try {
       Object.entries(this.services).forEach(async ([session, service]) => {
-        const status = await service.getStatus();
-        if (!status.value) {
-          logger.info(`Removing inactive WhatsApp instance for ${session}`);
+        let status;
+        try {
+          status = await service.getStatus();
+        } catch (error) {
           this.removeService(session);
         }
       });

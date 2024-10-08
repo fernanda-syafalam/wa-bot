@@ -175,7 +175,7 @@ class WhatsAppService {
     if (!this.isInitialized) {
       logger.warn(`Socket not initialized for session: ${this.session}, reconnecting...`);
       await this.initialize();
-      await new Promise(resolve => setTimeout(resolve, 1200));
+      await new Promise(resolve => setTimeout(resolve, 1400));
     }
   }
 
@@ -204,7 +204,10 @@ class WhatsAppService {
   }
 
   async generateQr() {
-    this.checkIsConnectionOpen();
+    if (this.connectionStatus !== 'open') {
+      await this.reconnect();
+    }
+
     this.checkIsScanRequired();
     try {
       while (!this.qrCode) {

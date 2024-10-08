@@ -146,15 +146,15 @@ components:
                 message: 'Socket rejected'
 
 paths:
-  /devices:
+  /sessions:
     get:
       security:
         - apiKey: []
         - signature: []
         - timestamp: []
       tags: ['Whatsapp']
-      summary: List Active Services
-      description: List Active Services
+      summary: List Session
+      description: List Session
       responses:
         200:
           description: Success
@@ -181,15 +181,15 @@ paths:
         400:
           $ref: '#/components/responses/BadRequestError'
 
-  /{sessions}/groups:
+  /sessions/{sessionId}/groups:
     get:
       security:
         - apiKey: []
         - signature: []
         - timestamp: []
       tags: ['Whatsapp']
-      summary: List Groups
-      description: List Groups
+      summary: List Groups Session
+      description: List Groups Session
       parameters:
         - name: sessions
           in: path
@@ -242,15 +242,16 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         400:
           $ref: '#/components/responses/BadRequestError'
-  /{sessions}/generate-qr:
+
+  /sessions/{sessionId}/status:
     get:
       security:
         - apiKey: []
         - signature: []
         - timestamp: []
       tags: ['Whatsapp']
-      summary: Generate QR
-      description: Generate QR
+      summary: Status Session
+      description: Status Session
 
       parameters:
         - name: sessions
@@ -259,6 +260,55 @@ paths:
           required: true
           schema:
             type: string
+
+      responses:
+        200:
+          description: Success get status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: Response code
+                  message:
+                    type: string
+                    description: Response message
+                  data:
+                    type: object
+                example:
+                  code: '20000'
+                  message: 'Active'
+                  data: null
+        403:
+          $ref: '#/components/responses/UnauthorizedError'
+        400:
+          $ref: '#/components/responses/BadRequestError'
+
+  /sessions/qr-code:
+    post:
+      security:
+        - apiKey: []
+        - signature: []
+        - timestamp: []
+      tags: ['Whatsapp']
+      summary: Generate QR Code
+      description: Generate QR Code
+
+      requestBody:
+        description: Your message
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                  description: Your sessionId
+              example:
+                sessionId: 'WA-01'
 
       responses:
         200:
@@ -293,92 +343,7 @@ paths:
                   code: '40901'
                   message: 'QR already setup'
 
-  /{sessions}/status:
-    get:
-      security:
-        - apiKey: []
-        - signature: []
-        - timestamp: []
-      tags: ['Whatsapp']
-      summary: Status
-      description: Status
-
-      parameters:
-        - name: sessions
-          in: path
-          description: Your session
-          required: true
-          schema:
-            type: string
-
-      responses:
-        200:
-          description: Success get status
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: string
-                    description: Response code
-                  message:
-                    type: string
-                    description: Response message
-                  data:
-                    type: object
-                example:
-                  code: '20000'
-                  message: 'Active'
-                  data: null
-        403:
-          $ref: '#/components/responses/UnauthorizedError'
-        400:
-          $ref: '#/components/responses/BadRequestError'
-  /{sessions}/terminate:
-    get:
-      security:
-        - apiKey: []
-        - signature: []
-        - timestamp: []
-      tags: ['Whatsapp']
-      summary: Terminate
-      description: Terminate
-
-      parameters:
-        - name: sessions
-          in: path
-          description: Your session
-          required: true
-          schema:
-            type: string
-
-      responses:
-        200:
-          description: Success terminate
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: string
-                    description: Response code
-                  message:
-                    type: string
-                    description: Response message
-                  data:
-                    type: object
-                example:
-                  code: '20000'
-                  message: 'Success'
-                  data: null
-        403:
-          $ref: '#/components/responses/UnauthorizedError'
-        400:
-          $ref: '#/components/responses/BadRequestError'
-
-  /{sessions}/send-message:
+  /sessions/{sessionId}/send-message:
     post:
       security:
         - apiKey: []
@@ -434,7 +399,7 @@ paths:
         400:
           $ref: '#/components/responses/BadRequestError'
 
-  /{sessions}/send-media:
+  /sessions/{sessionId}/send-media:
     post:
       security:
         - apiKey: []
@@ -501,6 +466,49 @@ paths:
                 example:
                   code: '20000'
                   message: 'Media sent successfully'
+                  data: null
+        403:
+          $ref: '#/components/responses/UnauthorizedError'
+        400:
+          $ref: '#/components/responses/BadRequestError'
+
+  /sessions/{sessionId}/terminate:
+    delete:
+      security:
+        - apiKey: []
+        - signature: []
+        - timestamp: []
+      tags: ['Whatsapp']
+      summary: Terminate
+      description: Terminate
+
+      parameters:
+        - name: sessions
+          in: path
+          description: Your session
+          required: true
+          schema:
+            type: string
+
+      responses:
+        200:
+          description: Success terminate
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: Response code
+                  message:
+                    type: string
+                    description: Response message
+                  data:
+                    type: object
+                example:
+                  code: '20000'
+                  message: 'Success'
                   data: null
         403:
           $ref: '#/components/responses/UnauthorizedError'

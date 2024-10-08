@@ -5,10 +5,10 @@ const { responseSuccess, responseError } = require('../utils/response');
 class WhatsAppController {
   async cleanup(req, res) {
     try {
-      const session = req.params.session;
-      const data = await WhatsAppManager.getService(session).cleanup();
+      const session = req.params.sessionId;
+      const data = await WhatsAppManager.getService(session).cleanUpSession();
       WhatsAppManager.cleanupInactiveServices();
-      responseSuccess(res, ResponseCode.Ok, data);
+      responseSuccess(res, ResponseCode.Ok, 'Session cleaned successfully');
     } catch (error) {
       responseError(res, error.status);
     }
@@ -16,7 +16,11 @@ class WhatsAppController {
 
   async generateQr(req, res, next) {
     try {
-      const session = req.params.session;
+      const session = req.body.session;
+      if (!session) {
+        responseError(res, ResponseCode.BadRequest, 'Missing required session');
+        return;
+      }
       const result = await WhatsAppManager.getService(session).generateQr();
       res.setHeader('Content-Type', 'image/png');
       res.send(result);
