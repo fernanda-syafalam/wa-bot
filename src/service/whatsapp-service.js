@@ -22,6 +22,7 @@ const {
   TIME_TOGENERATE_QR,
   SECONDS
 } = require('../constant/whatsapp-const');
+const RECONNECT_TIMEOUT = RETRY_REQUEST_DELAY * SECONDS;
 const { formatReceipt, prepareMediaMessage } = require('../utils/helper');
 
 const msgRetryCounterCache = new NodeCache();
@@ -175,7 +176,7 @@ class WhatsAppService {
     if (!this.isInitialized) {
       logger.warn(`Socket not initialized for session: ${this.session}, reconnecting...`);
       await this.initialize();
-      await new Promise(resolve => setTimeout(resolve, 1400));
+      await new Promise(resolve => setTimeout(resolve, RECONNECT_TIMEOUT));
     }
   }
 
