@@ -18,7 +18,7 @@ class WhatsAppController {
     try {
       const session = req.body.sessionId;
       if (!session) {
-        responseError(res, ResponseCode.BadRequest, 'Missing required session');
+        responseError(res, ResponseCode.BadRequest, 'Missing required sessionId');
         return;
       }
       const result = await WhatsAppManager.getService(session).generateQr();
