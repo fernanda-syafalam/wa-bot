@@ -16,7 +16,7 @@ class WhatsAppController {
 
   async generateQr(req, res, next) {
     try {
-      const session = req.body.session;
+      const session = req.body.sessionId;
       if (!session) {
         responseError(res, ResponseCode.BadRequest, 'Missing required session');
         return;
