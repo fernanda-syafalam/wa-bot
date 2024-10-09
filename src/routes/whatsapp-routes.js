@@ -6,12 +6,13 @@ const WhatsAppRoutes = Router();
 
 WhatsAppRoutes.use(limiter);
 WhatsAppRoutes.use(authMiddleware);
-WhatsAppRoutes.post('/qr-code', WhatsAppController.generateQr);
+WhatsAppRoutes.post('/qr-code', WhatsAppController.generateQrCode);
+WhatsAppRoutes.post('/raw-qr-code', WhatsAppController.generateQrCodeRaw);
 WhatsAppRoutes.post('/:session/send-message', WhatsAppController.sendMessage);
 WhatsAppRoutes.post('/:session/send-media', WhatsAppController.sendMedia);
 WhatsAppRoutes.get('/', WhatsAppController.listActiveServices);
 WhatsAppRoutes.get('/:session/status', WhatsAppController.getStatus);
-WhatsAppRoutes.delete('/:session/terminate', WhatsAppController.cleanup);
+WhatsAppRoutes.delete('/terminate', WhatsAppController.cleanup);
 WhatsAppRoutes.get('/:session/groups', WhatsAppController.getAllGroups);
 WhatsAppRoutes.get('/:session/cleanup', WhatsAppController.removeInactiveServices);
 

@@ -5,8 +5,6 @@ const { responseSuccess, responseError } = require('../utils/response');
 class WhatsAppController {
   async cleanup(req, res) {
     try {
-      const session = req.params.sessionId;
-      const data = await WhatsAppManager.getService(session).cleanUpSession();
       WhatsAppManager.cleanupInactiveServices();
       responseSuccess(res, ResponseCode.Ok, 'Session cleaned successfully');
     } catch (error) {
@@ -14,7 +12,7 @@ class WhatsAppController {
     }
   }
 
-  async generateQr(req, res, next) {
+  async generateQrCode(req, res, next) {
     try {
       const session = req.body.sessionId;
       if (!session) {
@@ -24,6 +22,19 @@ class WhatsAppController {
       const result = await WhatsAppManager.getService(session).generateQr();
       res.setHeader('Content-Type', 'image/png');
       res.send(result);
+    } catch (error) {
+      responseError(res, error.status);
+    }
+  }
+  async generateQrCodeRaw(req, res, next) {
+    try {
+      const session = req.body.sessionId;
+      if (!session) {
+        responseError(res, ResponseCode.BadRequest, 'Missing required sessionId');
+        return;
+      }
+      const result = await WhatsAppManager.getService(session).generateQr(true);
+      responseSuccess(res, ResponseCode.Ok, 'Success', result);
     } catch (error) {
       responseError(res, error.status);
     }

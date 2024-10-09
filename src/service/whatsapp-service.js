@@ -24,10 +24,10 @@ const {
 } = require('../constant/whatsapp-const');
 const RECONNECT_TIMEOUT = RETRY_REQUEST_DELAY * SECONDS;
 const { formatReceipt, prepareMediaMessage } = require('../utils/helper');
+const SESSION_DIRECTORY = path.join(__dirname, '../../', 'sessions');
 
 const msgRetryCounterCache = new NodeCache();
 const groupsCache = new NodeCache({ stdTTL: 60 * 5 });
-const SESSION_DIRECTORY = path.join(__dirname, '../../', 'sessions');
 
 class WhatsAppService {
   constructor(session) {
@@ -44,7 +44,7 @@ class WhatsAppService {
     if (this.isInitialized) return;
 
     try {
-      const { state, saveCreds } = await useMultiFileAuthState(path.join(__dirname, '../../', 'sessions', this.session));
+      const { state, saveCreds } = await useMultiFileAuthState(this.sessionPath);
       const { version } = await fetchLatestBaileysVersion();
 
       this.socket = this.createSocket(state, version);
@@ -98,6 +98,7 @@ class WhatsAppService {
   }
 
   deleteSessionPath() {
+    console.log('🚀 ~ WhatsAppService ~ deleteSessionPath ~ fs.existsSync(this.sessionPath):', fs.existsSync(this.sessionPath));
     if (fs.existsSync(this.sessionPath)) {
       fs.rm(this.sessionPath, { recursive: true }, err => {
         if (err) {
@@ -204,7 +205,7 @@ class WhatsAppService {
     }
   }
 
-  async generateQr() {
+  async generateQr(raw = false) {
     if (this.connectionStatus !== 'open') {
       await this.reconnect();
     }
@@ -214,7 +215,8 @@ class WhatsAppService {
       while (!this.qrCode) {
         await new Promise(resolve => setTimeout(resolve, TIME_TOGENERATE_QR * SECONDS));
       }
-      return QRCode.toBuffer(this.qrCode);
+      if (raw) return this.qrCode;
+      return await QRCode.toBuffer(this.qrCode);
     } catch (error) {
       throw new ResponseError(ResponseCode.InternalServerError);
     }

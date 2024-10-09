@@ -343,6 +343,70 @@ paths:
                   code: '40901'
                   message: 'QR already setup'
 
+  /sessions/raw-qr-code:
+    post:
+      security:
+        - apiKey: []
+        - signature: []
+        - timestamp: []
+      tags: ['Whatsapp']
+      summary: Generate QR Code
+      description: Generate QR Code
+
+      requestBody:
+        description: Your message
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                  description: Your sessionId
+              example:
+                sessionId: 'WA-01'
+
+      responses:
+        200:
+          description: Success generate QR code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: Response code
+                  message:
+                    type: string
+                    description: Response message
+                  data:
+                    type: string
+                    format: binary
+                    example: 2@s/+48hzlo53Vw7i/srjFmNX1WzSU4j6RFxwx0dlR3HW6rsHz2Ro4SGzA5HBZW6HUSBAu14xQiaKtxpjuYjxK4F3xJJnT4rHv/1w=,PbNpMrtRVsdglf+Cu1AobE+TvIS47zIoTpwx/D16MWQ=,+FCy3UfesEUDv7bdpbEpc3NutbF+FMo2bIbrOllJBRw=,Z7CZkRL52Cpn1UKWuniB7wtwiywx1/abCm2e8Gl5yaM=
+
+        403:
+          $ref: '#/components/responses/UnauthorizedError'
+        400:
+          $ref: '#/components/responses/BadRequestError'
+        409:
+          description: Sessions already setup
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: error code
+                  message:
+                    type: string
+                    description: error message
+                example:
+                  code: '40901'
+                  message: 'QR already setup'
+
   /sessions/{sessionId}/send-message:
     post:
       security:
