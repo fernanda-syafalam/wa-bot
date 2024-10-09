@@ -12,7 +12,8 @@ WhatsAppRoutes.post('/:session/send-message', WhatsAppController.sendMessage);
 WhatsAppRoutes.post('/:session/send-media', WhatsAppController.sendMedia);
 WhatsAppRoutes.get('/', WhatsAppController.listActiveServices);
 WhatsAppRoutes.get('/:session/status', WhatsAppController.getStatus);
-WhatsAppRoutes.delete('/terminate', WhatsAppController.cleanup);
+WhatsAppRoutes.delete('/terminate', WhatsAppController.cleanUpInactiveSessions);
+WhatsAppRoutes.delete('/:session/terminate', WhatsAppController.cleanUpSession);
 WhatsAppRoutes.get('/:session/groups', WhatsAppController.getAllGroups);
 WhatsAppRoutes.get('/:session/cleanup', WhatsAppController.removeInactiveServices);
 

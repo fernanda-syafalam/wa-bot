@@ -350,7 +350,7 @@ paths:
         - signature: []
         - timestamp: []
       tags: ['Whatsapp']
-      summary: Generate QR Code
+      summary: Generate Raw QR Code
       description: Generate QR Code
 
       requestBody:
@@ -543,8 +543,8 @@ paths:
         - signature: []
         - timestamp: []
       tags: ['Whatsapp']
-      summary: Terminate
-      description: Terminate
+      summary: Terminate Active Session
+      description: Terminate Active Session
 
       parameters:
         - name: sessions
@@ -578,3 +578,47 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         400:
           $ref: '#/components/responses/BadRequestError'
+
+  /sessions/terminate:
+    delete:
+      security:
+        - apiKey: []
+        - signature: []
+        - timestamp: []
+      tags: ['Whatsapp']
+      summary: Terminate All Inactive Session
+      description: Terminate All Inactive Session
+
+      parameters:
+        - name: sessions
+          in: path
+          description: Your session
+          required: true
+          schema:
+            type: string
+
+      responses:
+        200:
+          description: Success terminate
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: Response code
+                  message:
+                    type: string
+                    description: Response message
+                  data:
+                    type: object
+                example:
+                  code: '20000'
+                  message: 'Success'
+                  data: null
+        403:
+          $ref: '#/components/responses/UnauthorizedError'
+        400:
+          $ref: '#/components/responses/BadRequestError'
+

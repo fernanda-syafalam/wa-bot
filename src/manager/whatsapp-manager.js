@@ -27,6 +27,10 @@ class WhatsAppManager {
     }
   }
 
+  removeSession(session) {
+    delete this.services[session];
+  }
+
   getActiveServices() {
     return Object.keys(this.services);
   }

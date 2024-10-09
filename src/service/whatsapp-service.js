@@ -14,13 +14,13 @@ const ResponseError = require('../error/response-error');
 const { ResponseCode } = require('../constant/status-code');
 const {
   RECONNECT_REASONS,
-  RESTART_SESSION_REASONS,
   CONNECT_TIMEOUT,
   KEEP_ALIVE_INTERVAL,
   RETRY_REQUEST_DELAY,
   TIME_INITIALIZATION,
   TIME_TOGENERATE_QR,
-  SECONDS
+  SECONDS,
+  RESTART_REASONS
 } = require('../constant/whatsapp-const');
 const RECONNECT_TIMEOUT = RETRY_REQUEST_DELAY * SECONDS;
 const { formatReceipt, prepareMediaMessage } = require('../utils/helper');
@@ -38,6 +38,7 @@ class WhatsAppService {
     this.qrCode = undefined;
     this.isScanRequired = true;
     this.sessionPath = path.join(SESSION_DIRECTORY, this.session);
+    this.needTerminate = false;
   }
 
   async initialize() {
@@ -53,33 +54,38 @@ class WhatsAppService {
       this.socket.ev.on('creds.update', saveCreds);
 
       this.isInitialized = true;
-      logger.info(`WhatsApp socket initialized for session: ${this.session}`);
+      logger.info(`WhatsApp socket isInitialized for session: ${this.session}`);
     } catch (error) {
       logger.error(`Failed to initialize WhatsApp socket for session: ${this.session}, Error: ${error.message}`);
     }
   }
 
   createSocket(state, version) {
-    return makeWASocket({
-      version,
-      auth: {
-        creds: state.creds,
-        keys: makeCacheableSignalKeyStore(state.keys, logger)
-      },
-      logger,
-      printQRInTerminal: false,
-      browser: Browsers.macOS('Chrome', 'Safari'),
-      connectTimeoutMs: CONNECT_TIMEOUT * SECONDS,
-      keepAliveIntervalMs: KEEP_ALIVE_INTERVAL * SECONDS,
-      retryRequestDelayMs: RETRY_REQUEST_DELAY * SECONDS,
-      generateHighQualityLinkPreview: true,
-      fireInitQueries: false,
-      msgRetryCounterCache
-    });
+    try {
+      return makeWASocket({
+        version,
+        auth: {
+          creds: state.creds,
+          keys: makeCacheableSignalKeyStore(state.keys, logger)
+        },
+        logger,
+        printQRInTerminal: false,
+        browser: Browsers.macOS('Chrome', 'Safari'),
+        connectTimeoutMs: CONNECT_TIMEOUT * SECONDS,
+        keepAliveIntervalMs: KEEP_ALIVE_INTERVAL * SECONDS,
+        retryRequestDelayMs: RETRY_REQUEST_DELAY * SECONDS,
+        generateHighQualityLinkPreview: true,
+        fireInitQueries: false,
+        msgRetryCounterCache
+      });
+    } catch (error) {
+      logger.error(`Failed to create WhatsApp socket for session: ${this.session}, Error: ${error.message}`);
+    }
   }
 
   cleanUpSession() {
     try {
+      logger.info(`Cleaning up session: ${this.session}`);
       this.logoutAndRemoveSocket();
       this.deleteSessionPath();
 
@@ -91,9 +97,13 @@ class WhatsAppService {
   }
 
   logoutAndRemoveSocket() {
-    if (this.socket) {
-      this.socket.logout();
-      this.socket = null;
+    try {
+      if (this.socket) {
+        this.socket.logout();
+        this.socket = null;
+      }
+    } catch (error) {
+      logger.error(`Failed to logout and remove socket for ${this.session}: ${error.message}`);
     }
   }
 
@@ -112,7 +122,7 @@ class WhatsAppService {
     }
   }
 
-  handleConnectionUpdate(update) {
+  async handleConnectionUpdate(update) {
     try {
       const { connection, lastDisconnect, qr } = update;
       this.qrCode = qr;
@@ -131,19 +141,20 @@ class WhatsAppService {
     }
   }
 
-  handleConnectionClose(lastDisconnect) {
+  async handleConnectionClose(lastDisconnect) {
     this.connectionStatus = 'close';
     const lastDisconnectCode = lastDisconnect?.error?.output?.statusCode;
     logger.info(`Connection closed for session: ${this.session}, Reason: ${lastDisconnectCode}`);
 
-    if (RECONNECT_REASONS.includes(lastDisconnectCode)) {
-      logger.info(`Reconnecting for session: ${this.session}`);
-      this.initialized = false;
-      this.initialize();
-    } else if (RESTART_SESSION_REASONS.includes(lastDisconnectCode)) {
+    if (RESTART_REASONS.includes(lastDisconnectCode)) {
       logger.info(`Restarting session for ${this.session} due to disconnect reason: ${lastDisconnectCode}`);
-      this.cleanup();
-      this.initialize();
+      this.isInitialized = false;
+      await this.initialize();
+      logger.info(`Restarted session for ${this.session}`);
+    } else if (RECONNECT_REASONS.includes(lastDisconnectCode)) {
+      logger.info(`Reconnecting for session: ${this.session}`);
+      this.needTerminate = true;
+      // await this.initialize();
     } else {
       logger.error(`Unhandled disconnect reason: ${lastDisconnectCode} for session: ${this.session}`);
     }
@@ -151,6 +162,9 @@ class WhatsAppService {
 
   async ensureConnection() {
     if (this.connectionStatus === 'open') return;
+    if (this.needTerminate) {
+      throw new ResponseError(ResponseCode.SessionLost);
+    }
     try {
       this.validateSessions();
       await this.reconnect();
@@ -161,8 +175,12 @@ class WhatsAppService {
   }
 
   validateSessions() {
+    if (this.needTerminate) {
+      throw new ResponseError(ResponseCode.SessionLost);
+    }
+
     if (!fs.existsSync(this.sessionPath)) {
-      throw new ResponseError(ResponseCode.SessionsNotFound, 'Session not initialized');
+      throw new ResponseError(ResponseCode.SessionsNotFound, 'Session not isInitialized');
     }
   }
 
@@ -175,15 +193,18 @@ class WhatsAppService {
 
   async reconnect() {
     if (!this.isInitialized) {
-      logger.warn(`Socket not initialized for session: ${this.session}, reconnecting...`);
+      logger.warn(`Socket not isInitialized for session: ${this.session}, reconnecting...`);
       await this.initialize();
       await new Promise(resolve => setTimeout(resolve, RECONNECT_TIMEOUT));
     }
   }
 
   validateSocket() {
+    if (this.needTerminate) {
+      throw new ResponseError(ResponseCode.SessionLost);
+    }
     if (!this.socket) {
-      throw new ResponseError(ResponseCode.SocketNotFound, 'Socket not initialized');
+      throw new ResponseError(ResponseCode.SocketNotFound, 'Socket not isInitialized');
     }
   }
 
@@ -206,7 +227,12 @@ class WhatsAppService {
   }
 
   async generateQr(raw = false) {
+    if (this.needTerminate) {
+      throw new ResponseError(ResponseCode.SessionLost);
+    }
+
     if (this.connectionStatus !== 'open') {
+      console.log('🚀 ~ WhatsAppService ~ generateQr ~ this.connectionStatus:', this.connectionStatus);
       await this.reconnect();
     }
 
@@ -229,7 +255,6 @@ class WhatsAppService {
   }
 
   async getStatus() {
-    this.validateSessions();
     await this.checkIsConnectionOpen();
 
     return {

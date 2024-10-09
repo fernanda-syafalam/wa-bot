@@ -9,7 +9,8 @@ const ResponseCode = {
   Unauthorized: '40300',
   ConflictQR: '40901',
   InternalServerError: '50000',
-  CleanUpFailed: '50001'
+  CleanUpFailed: '50001',
+  SessionLost: '40002'
 };
 
 const ResponseCodeUtils = {
@@ -20,6 +21,7 @@ const ResponseCodeUtils = {
       [ResponseCode.SessionsNotFound]: 'Sessions Not Found',
       [ResponseCode.SocketNotFound]: 'Socket Not Found',
       [ResponseCode.SocketRejected]: 'Socket Rejected By WhatsApp',
+      [ResponseCode.SessionLost]: 'Session Expired need to terminate',
       [ResponseCode.CleanUpFailed]: 'Clean Up Failed',
       [ResponseCode.Unauthorized]: 'Unauthorized',
       [ResponseCode.ConflictQR]: 'QR already setup',

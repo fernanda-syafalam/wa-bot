@@ -3,9 +3,20 @@ const WhatsAppManager = require('../manager/whatsapp-manager');
 const { responseSuccess, responseError } = require('../utils/response');
 
 class WhatsAppController {
-  async cleanup(req, res) {
+  async cleanUpInactiveSessions(req, res) {
     try {
       WhatsAppManager.cleanupInactiveServices();
+      responseSuccess(res, ResponseCode.Ok, 'Session cleaned successfully');
+    } catch (error) {
+      responseError(res, error.status);
+    }
+  }
+
+  async cleanUpSession(req, res) {
+    try {
+      const session = req.params.session;
+      await WhatsAppManager.getService(session).cleanUpSession();
+      WhatsAppManager.removeSession(session);
       responseSuccess(res, ResponseCode.Ok, 'Session cleaned successfully');
     } catch (error) {
       responseError(res, error.status);
