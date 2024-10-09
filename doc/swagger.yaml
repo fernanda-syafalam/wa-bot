@@ -72,6 +72,13 @@ components:
           type: string
         message:
           type: string
+    SessionLostResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
 
   securitySchemes:
     apiKeyAuth:
@@ -115,6 +122,7 @@ components:
               value:
                 code: '40300'
                 message: 'Timestamp expired'
+              
 
     BadRequestError:
       description: Bad Request - The request is invalid.
@@ -125,6 +133,7 @@ components:
               - $ref: '#/components/schemas/SessionNotFoundResponse'
               - $ref: '#/components/schemas/SocketNotFoundResponse'
               - $ref: '#/components/schemas/SocketRejectedResponse'
+              - $ref: '#/components/schemas/SessionLostResponse'
 
           examples:
             sessionNotFound:
@@ -144,6 +153,12 @@ components:
               value:
                 code: '40001'
                 message: 'Socket rejected'
+
+            sessionLost:
+              summary: Session Expired need to terminate
+              value:
+                code: '40002'
+                message: 'Session Expired need to terminate'
 
 paths:
   /sessions:
