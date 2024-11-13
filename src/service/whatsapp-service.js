@@ -96,10 +96,10 @@ class WhatsAppService {
     }
   }
 
-  logoutAndRemoveSocket() {
+  async logoutAndRemoveSocket() {
     try {
       if (this.socket) {
-        this.socket.logout();
+        await this.socket.logout();
         this.socket = null;
       }
     } catch (error) {
@@ -142,21 +142,25 @@ class WhatsAppService {
   }
 
   async handleConnectionClose(lastDisconnect) {
-    this.connectionStatus = 'close';
-    const lastDisconnectCode = lastDisconnect?.error?.output?.statusCode;
-    logger.info(`Connection closed for session: ${this.session}, Reason: ${lastDisconnectCode}`);
+    try {
+      this.connectionStatus = 'close';
+      const lastDisconnectCode = lastDisconnect?.error?.output?.statusCode;
+      logger.info(`Connection closed for session: ${this.session}, Reason: ${lastDisconnectCode}`);
 
-    if (RESTART_REASONS.includes(lastDisconnectCode)) {
-      logger.info(`Restarting session for ${this.session} due to disconnect reason: ${lastDisconnectCode}`);
-      this.isInitialized = false;
-      await this.initialize();
-      logger.info(`Restarted session for ${this.session}`);
-    } else if (RECONNECT_REASONS.includes(lastDisconnectCode)) {
-      logger.info(`Reconnecting for session: ${this.session}`);
-      this.needTerminate = true;
-      // await this.initialize();
-    } else {
-      logger.error(`Unhandled disconnect reason: ${lastDisconnectCode} for session: ${this.session}`);
+      if (RESTART_REASONS.includes(lastDisconnectCode)) {
+        logger.info(`Restarting session for ${this.session} due to disconnect reason: ${lastDisconnectCode}`);
+        this.isInitialized = false;
+        await this.initialize();
+        logger.info(`Restarted session for ${this.session}`);
+      } else if (RECONNECT_REASONS.includes(lastDisconnectCode)) {
+        logger.info(`Reconnecting for session: ${this.session}`);
+        this.needTerminate = true;
+        // await this.initialize();
+      } else {
+        logger.error(`Unhandled disconnect reason: ${lastDisconnectCode} for session: ${this.session}`);
+      }
+    } catch (error) {
+      logger.error(`Error handling connection close for session: ${this.session}, Error: ${error.message}`);
     }
   }
 

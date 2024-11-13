@@ -65,11 +65,7 @@ class WhatsAppManager {
   async cleanupSession(session) {
     const sessionPath = this.getSessionPath(session);
 
-    if (this.isServiceActive(session)) {
-      await this.handleActiveService(session, sessionPath);
-    } else {
-      await this.handleInactiveService(session, sessionPath);
-    }
+    await this.handleActiveService(session, sessionPath);
   }
 
   isServiceActive(session) {
@@ -77,15 +73,7 @@ class WhatsAppManager {
   }
 
   async handleActiveService(session, sessionPath) {
-    try {
-      const status = await this.services[session].getStatus();
-      if (!status || status === 'inactive') {
-        await this.removeServiceAndSession(session, sessionPath);
-      }
-    } catch (error) {
-      logger.error(`Error fetching status for session: ${session}`, error);
-      await this.removeServiceAndSession(session, sessionPath);
-    }
+    await this.removeServiceAndSession(session, sessionPath);
   }
 
   async handleInactiveService(session, sessionPath) {

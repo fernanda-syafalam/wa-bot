@@ -2,7 +2,6 @@ const { DisconnectReason } = require('@whiskeysockets/baileys');
 const path = require('path');
 
 const RESTART_REASONS = [
-  DisconnectReason.timedOut,
   DisconnectReason.connectionClosed,
   DisconnectReason.connectionLost,
   DisconnectReason.connectionReplaced,
@@ -10,6 +9,7 @@ const RESTART_REASONS = [
 ];
 
 const RECONNECT_REASONS = [
+  DisconnectReason.timedOut,
   DisconnectReason.badSession,
   DisconnectReason.multideviceMismatch,
   DisconnectReason.forbidden,

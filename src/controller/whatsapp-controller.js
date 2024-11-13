@@ -73,7 +73,7 @@ class WhatsAppController {
 
   async listActiveServices(req, res) {
     try {
-      const activeServices = WhatsAppManager.getActiveServices();
+      const activeServices = await WhatsAppManager.getSessions();
       responseSuccess(res, ResponseCode.Ok, 'Success', activeServices);
     } catch (error) {
       responseError(res, error.status);

@@ -4,5 +4,10 @@
   "delay": "1000",
   "restartable": "rs",
   "exec": "node ./src/app.js",
-  "legacy-watch": true
+  "legacy-watch": true,
+  "ignore": ["node_modules/**/*"],
+  "events": {
+    "restart": "rs"
+  }
 }
+
