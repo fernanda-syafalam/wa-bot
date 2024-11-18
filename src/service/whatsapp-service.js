@@ -285,7 +285,6 @@ class WhatsAppService {
 
   async sendMediaMessage(recipient, caption, type, url, isPTT, fileName) {
     await this.checkIsConnectionOpen();
-
     try {
       const formattedRecipient = formatReceipt(recipient);
 

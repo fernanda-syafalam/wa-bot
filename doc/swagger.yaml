@@ -520,7 +520,7 @@ paths:
                 url:
                   type: string
                   description: file url
-                ppt:
+                ptt:
                   type: string
                   description: ptt
               example:
@@ -529,7 +529,7 @@ paths:
                 filename: 'image.png'
                 type: 'image'
                 url: 'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg'
-                ppt: 'true'
+                ptt: 'true'
 
       responses:
         200:
@@ -545,7 +545,12 @@ paths:
                 example:
                   code: '20000'
                   message: 'Media sent successfully'
-                  data: null
+                  data: 
+                    key: null
+                    message: null
+                    messageTimestamp: null
+                    status: 'pending'
+                    participants: null
         403:
           $ref: '#/components/responses/UnauthorizedError'
         400:

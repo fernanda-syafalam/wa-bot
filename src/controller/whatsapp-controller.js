@@ -98,9 +98,9 @@ class WhatsAppController {
     try {
       const session = req.params.session;
       const { to, type, url, caption, ptt, filename } = req.body;
-      const data = await WhatsAppManager.getService(session).sendMedia(to, caption, type, url, ptt, filename);
+      const data = await WhatsAppManager.getService(session).sendMediaMessage(to, caption, type, url, ptt, filename);
 
-      return responseSuccess(res, ResponseCode.Ok, 'Message sent', data);
+      return responseSuccess(res, ResponseCode.Ok, data);
     } catch (error) {
       responseError(res, error.status);
     }
