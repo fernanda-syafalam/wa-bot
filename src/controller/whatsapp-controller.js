@@ -97,8 +97,8 @@ class WhatsAppController {
   async sendMedia(req, res, next) {
     try {
       const session = req.params.session;
-      const { to, type, url, caption, ptt, filename } = req.body;
-      const data = await WhatsAppManager.getService(session).sendMediaMessage(to, caption, type, url, ptt, filename);
+      const { to, type, url, caption, ptt, filename, disappearingDay } = req.body;
+      const data = await WhatsAppManager.getService(session).sendMediaMessage(to, caption, type, url, ptt, filename, disappearingDay);
 
       return responseSuccess(res, ResponseCode.Ok, data);
     } catch (error) {
@@ -109,8 +109,8 @@ class WhatsAppController {
   async sendMessage(req, res, next) {
     try {
       const session = req.params.session;
-      const { to, message } = req.body;
-      const data = await WhatsAppManager.getService(session).sendMessage(to, message);
+      const { to, message, disappearingDay } = req.body;
+      const data = await WhatsAppManager.getService(session).sendMessage(to, message, disappearingDay);
       return responseSuccess(res, ResponseCode.Ok, data);
     } catch (error) {
       responseError(res, error.status);

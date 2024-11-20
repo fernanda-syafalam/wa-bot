@@ -3,7 +3,9 @@ const {
   Browsers,
   default: makeWASocket,
   makeCacheableSignalKeyStore,
-  fetchLatestBaileysVersion
+  fetchLatestBaileysVersion,
+  fetchLatestWaWebVersion,
+  WA_DEFAULT_EPHEMERAL
 } = require('@whiskeysockets/baileys');
 const logger = require('../config/logger');
 const QRCode = require('qrcode');
@@ -70,7 +72,7 @@ class WhatsAppService {
         },
         logger,
         printQRInTerminal: false,
-        browser: Browsers.macOS('Chrome', 'Safari'),
+        browser: Browsers.macOS('Desktop'),
         connectTimeoutMs: CONNECT_TIMEOUT * SECONDS,
         keepAliveIntervalMs: KEEP_ALIVE_INTERVAL * SECONDS,
         retryRequestDelayMs: RETRY_REQUEST_DELAY * SECONDS,
@@ -268,10 +270,12 @@ class WhatsAppService {
     };
   }
 
-  async sendMessage(recipient, message) {
+  async sendMessage(recipient, message, disappearingDay = 0) {
     await this.checkIsConnectionOpen();
     try {
-      await this.socket.sendMessage(formatReceipt(recipient), this.formatTextMessage(message));
+      await this.socket.sendMessage(formatReceipt(recipient), this.formatTextMessage(message), {
+        ephemeralExpiration: disappearingDay * 24 * 60 * 60
+      });
       return 'Message sent successfully';
     } catch (error) {
       logger.error(`Failed to send message to ${recipient}, Error: ${error.message}`);
@@ -283,7 +287,7 @@ class WhatsAppService {
     return { text: message };
   }
 
-  async sendMediaMessage(recipient, caption, type, url, isPTT, fileName) {
+  async sendMediaMessage(recipient, caption, type, url, isPTT, fileName, disappearingDay = 0) {
     await this.checkIsConnectionOpen();
     try {
       const formattedRecipient = formatReceipt(recipient);
@@ -300,15 +304,21 @@ class WhatsAppService {
       });
 
       const forwardMessage = { ...mediaMessage.message };
-      return await this.socket.sendMessage(formattedRecipient, {
-        forward: {
-          key: {
-            remoteJid: this.socket.user.id.replace(/:\d+/, ''),
-            fromMe: true
-          },
-          message: forwardMessage
+      return await this.socket.sendMessage(
+        formattedRecipient,
+        {
+          forward: {
+            key: {
+              remoteJid: this.socket.user.id.replace(/:\d+/, ''),
+              fromMe: true
+            },
+            message: forwardMessage
+          }
+        },
+        {
+          ephemeralExpiration: disappearingDay * 24 * 60 * 60
         }
-      });
+      );
     } catch (error) {
       throw new ResponseError(ResponseCode.InternalServerError, `Failed to send media to ${recipient}`);
     }
