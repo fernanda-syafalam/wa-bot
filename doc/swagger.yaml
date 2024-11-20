@@ -552,12 +552,7 @@ paths:
                 example:
                   code: '20000'
                   message: 'Media sent successfully'
-                  data:
-                    key: null
-                    message: null
-                    messageTimestamp: null
-                    status: 'pending'
-                    participants: null
+                  data: null
         403:
           $ref: '#/components/responses/UnauthorizedError'
         400:

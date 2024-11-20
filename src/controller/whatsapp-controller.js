@@ -100,7 +100,7 @@ class WhatsAppController {
       const { to, type, url, caption, ptt, filename, disappearingDay } = req.body;
       const data = await WhatsAppManager.getService(session).sendMediaMessage(to, caption, type, url, ptt, filename, disappearingDay);
 
-      return responseSuccess(res, ResponseCode.Ok, data);
+      return responseSuccess(res, ResponseCode.Ok, 'Message sent successfully');
     } catch (error) {
       responseError(res, error.status);
     }
@@ -111,7 +111,7 @@ class WhatsAppController {
       const session = req.params.session;
       const { to, message, disappearingDay } = req.body;
       const data = await WhatsAppManager.getService(session).sendMessage(to, message, disappearingDay);
-      return responseSuccess(res, ResponseCode.Ok, data);
+      return responseSuccess(res, ResponseCode.Ok, 'Message sent successfully');
     } catch (error) {
       responseError(res, error.status);
     }
