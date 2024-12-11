@@ -17,9 +17,9 @@ const RECONNECT_REASONS = [
   DisconnectReason.loggedOut
 ];
 
-const CONNECT_TIMEOUT = 15;
-const KEEP_ALIVE_INTERVAL = 7.5;
-const RETRY_REQUEST_DELAY = 1.5;
+const CONNECT_TIMEOUT = 60;
+const KEEP_ALIVE_INTERVAL = 30;
+const RETRY_REQUEST_DELAY = 5;
 const TIME_INITIALIZATION = 1.5;
 const TIME_TOGENERATE_QR = 1.75;
 const SECONDS = 1000;

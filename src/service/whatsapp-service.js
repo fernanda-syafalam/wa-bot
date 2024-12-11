@@ -72,13 +72,17 @@ class WhatsAppService {
         },
         logger,
         printQRInTerminal: false,
-        browser: Browsers.macOS('Desktop'),
+        browser: Browsers.baileys('Desktop'),
         connectTimeoutMs: CONNECT_TIMEOUT * SECONDS,
         keepAliveIntervalMs: KEEP_ALIVE_INTERVAL * SECONDS,
         retryRequestDelayMs: RETRY_REQUEST_DELAY * SECONDS,
-        generateHighQualityLinkPreview: true,
+        defaultQueryTimeoutMs: 10 * SECONDS,
+        generateHighQualityLinkPreview: false,
+        markOnlineOnConnect: true,
         fireInitQueries: false,
-        msgRetryCounterCache
+        shouldSyncHistoryMessage: (msg) => false,
+        maxMsgRetryCount: 3,
+        syncFullHistory: false
       });
     } catch (error) {
       logger.error(`Failed to create WhatsApp socket for session: ${this.session}, Error: ${error.message}`);
@@ -132,6 +136,7 @@ class WhatsAppService {
 
       if (connection === 'close') {
         this.handleConnectionClose(lastDisconnect);
+        logger.error(`Connection closed for session: ${this.session}, Reason: ${lastDisconnect?.error?.output?.statusCode}`);
       } else if (connection === 'open') {
         this.connectionStatus = 'open';
         logger.info(`Connection established for session: ${this.session}`);
